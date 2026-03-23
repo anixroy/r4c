@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="bn" style="background:#09090f;">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#09090f">
+<meta name="msapplication-navbutton-color" content="#09090f">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>html,body{background:#09090f !important;}</style>
+<title>Ready4Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#07070f;--card:#0d0d1a;--border:#1a1a2e;
+  --accent:#ff4500;--orange:#ff8c00;--gold:#ffc200;
+  --green:#00e676;--red:#ff3d3d;--text:#eeeeff;
+  --muted:#505070;--bkash:#e2136e;
+  --nav:62px;--bar:52px;
+  --radius:16px;--shadow:0 4px 24px rgba(0,0,0,.5);
+}
+.ic{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ic svg{display:block;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;-webkit-text-size-adjust:100%;}
+body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--text);height:100%;width:100%;position:fixed;top:0;left:0;overflow:hidden;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;bottom:-120px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(255,69,0,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* APP BAR */
+#appBar{flex-shrink:0;height:var(--bar);background:rgba(10,10,22,.96);border-bottom:1px solid rgba(255,255,255,.06);display:none;align-items:center;justify-content:space-between;padding:0 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;}
+#appBar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,69,0,.4),rgba(255,140,0,.4),transparent);}
+.bar-logo{font-family:'Teko',sans-serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px;}
+.bar-user{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:3px 10px 3px 3px;transition:background .2s;}
+.av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--orange));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.av-name{font-size:12px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.av-img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+/* Logout popup */
+#logoutPopup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;justify-content:center;align-items:center;padding:20px;}
+#logoutPopup.show{display:flex;}
+.logout-sheet{background:var(--card);border:1px solid rgba(255,61,61,.3);border-radius:20px;padding:22px 18px 28px;width:100%;max-width:340px;animation:slideUp .22s ease;}
+.logout-title{font-family:'Teko',sans-serif;font-size:26px;color:var(--red);text-align:center;margin-bottom:6px;}
+.logout-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.6;}
+
+/* ── PROFILE SECTION (Instagram style) ── */
+.profile-ig-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 16px;}
+.profile-ig-av{position:relative;width:86px;height:86px;margin-bottom:10px;}
+.profile-ig-av .av-ring{position:absolute;inset:-3px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--orange),var(--gold));padding:3px;z-index:0;}
+.profile-ig-av .av-ring-inner{width:100%;height:100%;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.profile-ig-av .av-ring-inner img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.profile-ig-av .av-ring-inner .av-initial{font-family:'Teko',sans-serif;font-size:34px;font-weight:700;color:#fff;}
+.profile-ig-av .edit-cam{position:absolute;bottom:0;right:0;width:26px;height:26px;background:linear-gradient(135deg,var(--accent),var(--orange));border:2px solid var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;z-index:1;}
+.profile-ig-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.profile-ig-email{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.profile-ig-bio{font-size:13px;color:rgba(240,239,255,.8);text-align:center;line-height:1.6;max-width:280px;margin-bottom:10px;min-height:18px;}
+.bio-edit-row{display:flex;gap:6px;width:100%;max-width:300px;}
+.bio-inp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:7px 14px;color:var(--text);font-family:'Hind Siliguri',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.bio-inp:focus{border-color:var(--accent);}
+.bio-save-btn{background:linear-gradient(135deg,var(--accent),var(--orange));border:none;border-radius:20px;padding:7px 16px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Hind Siliguri',sans-serif;white-space:nowrap;}
+#profilePhotoStatus{font-size:11px;color:var(--muted);margin-top:4px;text-align:center;}
+
+/* PAGES */
+#contentArea{flex:1;min-height:0;position:relative;overflow:hidden;}
+.page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:13px 13px 80px;display:none;}
+.page.active{display:block;}
+.pgchat-wrap{display:none;position:absolute;inset:0;flex-direction:column;background:var(--bg);}
+.pgchat-wrap.active{display:flex;}
+#chatMsgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 13px;min-height:0;box-sizing:border-box;}
+.msg-wrap{display:flex;gap:6px;align-items:flex-end;margin-bottom:8px;width:100%;}
+.msg-wrap.me{flex-direction:row-reverse;}
+.msg-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--orange));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.msg-content{max-width:72%;display:flex;flex-direction:column;}
+.msg-wrap.me .msg-content{align-items:flex-end;}
+.msg-name{font-size:10px;color:var(--muted);margin-bottom:2px;padding-left:4px;}
+.msg-bbl{padding:9px 12px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;}
+.msg-wrap:not(.me) .msg-bbl{background:#1e1e2e;border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text);}
+.msg-wrap.me .msg-bbl{background:linear-gradient(135deg,var(--accent),var(--orange));color:#fff;border-bottom-right-radius:4px;}
+.msg-time{font-size:10px;margin-top:3px;padding:0 4px;}
+.msg-wrap:not(.me) .msg-time{color:var(--muted);}
+.msg-wrap.me .msg-time{color:rgba(255,255,255,.55);text-align:right;}
+.msg-img{max-width:200px;border-radius:10px;margin-top:5px;cursor:pointer;display:block;}
+
+/* NAV */
+#botNav{flex-shrink:0;height:var(--nav);background:rgba(10,10,20,.96);border-top:1px solid rgba(255,255,255,.06);display:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.nav-wrap{display:flex;height:100%;width:100%;padding:0 4px;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:'Hind Siliguri',sans-serif;font-size:10px;font-weight:500;transition:color .2s,transform .15s;position:relative;min-width:0;padding:6px 2px;border-radius:12px;margin:6px 2px;}
+.nav-btn svg{transition:stroke .2s;}
+.nav-btn:active{transform:scale(.92);}
+.nav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn.active svg{stroke:var(--accent);}
+.nav-btn.active::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px 2px 0 0;box-shadow:0 0 8px rgba(255,69,0,.6);}
+.ni{font-size:20px;line-height:1;}
+
+/* AUTH */
+#authScreen{display:none;flex-direction:column;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;background:linear-gradient(160deg,#06060f,#0e0618,#06100a);padding:60px 16px 40px;gap:16px;align-items:center;}
+.auth-logo{font-family:'Teko',sans-serif;font-size:52px;font-weight:700;line-height:1.1;text-align:center;background:linear-gradient(135deg,#ff4500,#ff8c00,#ffc200);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px rgba(255,69,0,.5));}
+
+/* COMPONENTS */
+.card{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 16px rgba(0,0,0,.3);}
+.card-t{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-weight:600;}
+.sec-h{font-family:'Teko',sans-serif;font-size:21px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.inp{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Hind Siliguri',sans-serif;font-size:14px;outline:none;transition:border-color .2s,background .2s;margin-bottom:10px;display:block;user-select:text;-webkit-user-select:text;}
+.inp:focus{border-color:var(--accent);background:rgba(255,69,0,.03);}
+.inp::placeholder{color:var(--muted);}
+.btn{width:100%;padding:13px;border:none;border-radius:14px;font-family:'Hind Siliguri',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:transform .1s,opacity .2s,box-shadow .2s;display:flex;align-items:center;justify-content:center;gap:7px;letter-spacing:.2px;}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.btn-fire{background:linear-gradient(135deg,var(--accent),var(--orange));color:#fff;margin-bottom:8px;box-shadow:0 4px 16px rgba(255,69,0,.3);}
+.btn-green{background:linear-gradient(135deg,#00b09b,var(--green));color:#001a10;}
+.btn-outline{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);margin-bottom:8px;}
+.btn-danger{background:rgba(255,61,61,.1);border:1px solid rgba(255,61,61,.25);color:var(--red);}
+.btn-sm{width:auto;padding:7px 14px;font-size:12px;border-radius:8px;}
+.box{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.7;}
+.box-warn{background:rgba(255,194,0,.07);border:1px solid rgba(255,194,0,.2);color:rgba(255,220,100,.9);}
+.box-info{background:rgba(79,195,247,.05);border:1px solid rgba(79,195,247,.15);color:rgba(200,235,255,.9);}
+.box-danger{background:rgba(255,61,61,.07);border:1px solid rgba(255,61,61,.18);color:rgba(255,150,150,.9);}
+.box-fire{background:rgba(255,69,0,.07);border:1px solid rgba(255,69,0,.2);color:rgba(255,200,150,.9);}
+.auth-link{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;}
+.auth-link span{color:var(--orange);cursor:pointer;font-weight:600;}
+
+/* TOGGLE */
+.tgl-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+.tgl-row:last-child{border-bottom:none;}
+.tgl-label{font-size:14px;}.tgl-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.tgl{width:46px;height:25px;background:rgba(255,255,255,.1);border-radius:13px;position:relative;cursor:pointer;transition:background .25s;border:none;flex-shrink:0;}
+.tgl.on{background:var(--green);}
+.tgl::after{content:'';position:absolute;width:19px;height:19px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .25s;}
+.tgl.on::after{left:24px;}
+
+/* RATE */
+.rate-box{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.15);border-radius:13px;padding:14px;text-align:center;margin:10px 0;}
+.rate-big{font-family:'Teko',sans-serif;font-size:60px;font-weight:700;color:var(--green);line-height:1;}
+.rate-sub{font-size:12px;color:var(--muted);}
+.rp-prev{background:#050505;border:1px solid var(--border);border-radius:10px;padding:13px;font-family:monospace;font-size:12.5px;line-height:2;white-space:pre;color:#00ff88;letter-spacing:.3px;}
+
+/* UPLOAD */
+.upload-z{border:2px dashed var(--border);border-radius:12px;padding:22px 14px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.upload-z:active{border-color:var(--accent);}
+.uz-ic{font-size:32px;margin-bottom:6px;}
+.uz-t{font-size:13px;color:var(--muted);}
+.uz-s{font-size:11px;color:var(--muted);margin-top:3px;}
+.ss-prev{width:100%;border-radius:10px;max-height:160px;object-fit:cover;margin-bottom:10px;display:none;}
+
+/* CHALLENGE RULES BOX */
+.rules-box{background:linear-gradient(135deg,rgba(255,69,0,.1),rgba(255,140,0,.05),rgba(255,194,0,.03));border:1px solid rgba(255,140,0,.25);border-radius:16px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden;}
+.rules-box::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(255,140,0,.12) 0%,transparent 70%);pointer-events:none;}
+.rules-box .r-title{font-family:'Teko',sans-serif;font-size:20px;color:var(--orange);margin-bottom:12px;display:flex;align-items:center;gap:8px;letter-spacing:.5px;}
+.rule-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;line-height:1.5;}
+.rule-item:last-child{border:none;padding-bottom:0;}
+.rule-ic{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);}
+
+/* FEED POST */
+.post{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.post-h{padding:11px 13px;display:flex;align-items:center;gap:9px;}
+.post-meta{flex:1;min-width:0;}
+.post-nm{font-size:13px;font-weight:600;}
+.post-dt{font-size:10px;color:var(--muted);margin-top:1px;}
+.rate-badge{font-family:'Teko',sans-serif;font-size:20px;font-weight:700;padding:2px 10px;border-radius:16px;flex-shrink:0;}
+.rb-100{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.rb-50{background:rgba(255,194,0,.1);color:var(--gold);border:1px solid rgba(255,194,0,.25);}
+.rb-0{background:rgba(255,61,61,.1);color:var(--red);border:1px solid rgba(255,61,61,.25);}
+.post-txt{padding:0 13px 10px;font-family:monospace;font-size:13px;line-height:1.9;color:#00ff88;white-space:pre;}
+.post-ss{width:100%;max-height:180px;object-fit:cover;border-top:1px solid var(--border);display:block;cursor:pointer;}
+.post-acts{padding:9px 13px;border-top:1px solid var(--border);display:flex;gap:6px;}
+.act-btn{background:none;border:none;color:var(--muted);font-family:'Hind Siliguri',sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:5px 8px;border-radius:7px;}
+.act-btn:active{background:rgba(255,255,255,.06);color:var(--text);}
+.comms-area{display:none;border-top:1px solid var(--border);padding:10px 13px;}
+.comm-item{display:flex;gap:6px;margin-bottom:8px;}
+.comm-body{background:rgba(255,255,255,.04);border-radius:9px;padding:7px 11px;flex:1;}
+.comm-auth{font-size:11px;font-weight:600;color:var(--orange);}
+.comm-txt{font-size:13px;margin-top:1px;line-height:1.5;}
+.comm-inp-row{display:flex;gap:6px;margin-top:6px;}
+.comm-inp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:18px;padding:7px 12px;color:var(--text);font-family:'Hind Siliguri',sans-serif;font-size:13px;outline:none;}
+.comm-inp:focus{border-color:var(--accent);}
+.send-b{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--orange));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(255,69,0,.3);}
+
+/* HISTORY */
+.hist-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.hist-date{font-size:12px;color:var(--muted);min-width:60px;}
+.hist-txt{font-family:monospace;font-size:12px;color:#00ff88;flex:1;}
+.hist-badge{font-family:'Teko',sans-serif;font-size:17px;font-weight:700;padding:2px 8px;border-radius:12px;flex-shrink:0;}
+
+/* CHAT */
+.chat-bar{flex-shrink:0;display:flex;gap:6px;padding:8px 13px;border-top:1px solid var(--border);background:var(--bg);}
+.chat-inp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:9px 13px;color:var(--text);font-family:'Hind Siliguri',sans-serif;font-size:14px;outline:none;}
+.chat-inp:focus{border-color:var(--accent);}
+.ic-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ic-attach{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);}
+.ic-send{background:linear-gradient(135deg,var(--accent),var(--orange));}
+
+/* OVERLAYS */
+#lockOverlay{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at center,#110005 0%,#000008 100%);flex-direction:column;justify-content:center;align-items:center;gap:14px;text-align:center;padding:28px;}
+#lockOverlay.show{display:flex;}
+.lock-ic{font-size:80px;animation:wob .7s ease-in-out infinite;}
+@keyframes wob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.lock-clk{font-family:'Teko',sans-serif;font-size:76px;color:rgba(255,40,40,.3);line-height:1;}
+.lock-t{font-family:'Teko',sans-serif;font-size:42px;color:var(--red);line-height:1;}
+.lock-m{font-size:15px;color:rgba(255,255,255,.6);line-height:1.8;}
+
+#socialWarn{display:none;position:fixed;inset:0;z-index:9990;background:radial-gradient(ellipse at center,#0a0005 0%,#000005 100%);flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center;padding:28px;}
+#socialWarn.show{display:flex;}
+.sw-icon{font-size:90px;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.sw-title{font-family:'Teko',sans-serif;font-size:38px;color:var(--red);line-height:1.1;}
+.sw-msg{font-size:15px;color:rgba(255,255,255,.7);line-height:1.8;max-width:340px;}
+.sw-timer{font-family:'Teko',sans-serif;font-size:52px;color:var(--gold);line-height:1;}
+.sw-timer-lbl{font-size:12px;color:var(--muted);}
+
+#wakeOverlay{display:none;position:fixed;inset:0;z-index:9998;background:linear-gradient(160deg,#000d06,#05000f);flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 16px 32px;gap:14px;user-select:none;-webkit-user-select:none;}
+#wakeOverlay.show{display:flex;}
+.wake-t{font-family:'Teko',sans-serif;font-size:36px;color:var(--green);text-align:center;}
+.wake-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+.quote-card{background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.14);border-radius:12px;padding:14px;}
+.q-num{font-size:11px;color:var(--green);font-weight:600;margin-bottom:5px;}
+.q-txt{font-size:14px;color:var(--text);line-height:1.7;font-style:italic;}
+.type-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.type-inst{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5;}
+.type-tgt{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:10px;padding:8px 12px;background:rgba(255,194,0,.07);border-radius:8px;line-height:1.5;user-select:none;-webkit-user-select:none;}
+.type-prog{font-size:12px;color:var(--muted);margin-top:4px;}
+
+#rpBanner{display:none;position:fixed;top:0;left:0;right:0;z-index:400;background:linear-gradient(135deg,rgba(255,69,0,.97),rgba(255,140,0,.97));padding:11px 14px;flex-direction:row;align-items:center;gap:9px;box-shadow:0 3px 16px rgba(255,69,0,.45);}
+#rpBanner.show{display:flex;}
+.rb-txt{flex:1;font-size:13px;font-weight:600;color:#fff;}
+.rb-btn{background:rgba(0,0,0,.25);border:none;color:#fff;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Hind Siliguri',sans-serif;}
+
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:800;justify-content:center;align-items:center;}
+#lightbox.show{display:flex;}
+#lbImg{max-width:96%;max-height:90%;border-radius:10px;}
+#lbX{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;}
+
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 16px;font-size:13px;z-index:700;transition:transform .25s;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.ok{border-color:var(--green);color:var(--green);}
+#toast.err{border-color:var(--red);color:var(--red);}
+#toast.warn{border-color:var(--gold);color:var(--gold);}
+
+.spin{border:3px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;width:30px;height:30px;animation:sp .7s linear infinite;margin:32px auto;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:36px 16px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.empty-ic{display:flex;align-items:center;justify-content:center;margin-bottom:2px;}
+.rpt-lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;display:block;}
+#splashScreen{display:flex;position:fixed;inset:0;z-index:99999;background:#09090f;flex-direction:column;justify-content:center;align-items:center;gap:16px;}
+.splash-logo{font-family:'Teko',sans-serif;font-size:52px;font-weight:700;background:linear-gradient(135deg,#ff4500,#ff8c00,#ffc200);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px rgba(255,69,0,.5));}
+.splash-spin{border:3px solid rgba(255,255,255,.08);border-top-color:var(--accent);border-radius:50%;width:28px;height:28px;animation:sp .7s linear infinite;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── TRACKER STYLES ── */
+.sleep-display{background:rgba(118,75,162,.07);border:1px solid rgba(118,75,162,.18);border-radius:12px;padding:13px;margin-bottom:10px;}
+.sleep-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
+.sleep-row:last-child{border:none;}
+.sleep-lbl{color:var(--muted);font-size:12px;}
+.sleep-val{font-weight:600;}
+.sleep-timer{font-family:'Teko',sans-serif;font-size:58px;color:var(--accent);text-align:center;line-height:1;text-shadow:0 0 20px rgba(255,69,0,.3);}
+.sleep-timer-lbl{text-align:center;font-size:11px;color:var(--accent);letter-spacing:2px;margin-top:2px;animation:blink-a 1.2s infinite;}
+@keyframes blink-a{0%,100%{opacity:1}50%{opacity:.3}}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#c084fc);color:#fff;margin-bottom:8px;}
+.btn-teal{background:linear-gradient(135deg,#00b09b,var(--green));color:#001a10;margin-bottom:8px;}
+
+.pushup-big{font-family:'Teko',sans-serif;font-size:72px;color:var(--orange);text-align:center;line-height:1;text-shadow:0 0 24px rgba(255,140,0,.3);}
+.num-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.num-adj{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.num-adj:active{transform:scale(.9);background:rgba(255,140,0,.2);}
+.num-inp-big{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:'Teko',sans-serif;font-size:32px;text-align:center;outline:none;transition:border-color .2s;}
+.num-inp-big:focus{border-color:var(--orange);}
+
+.trk-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:9px;}
+.trk-ic{font-size:20px;flex-shrink:0;margin-top:1px;}
+.trk-body{flex:1;min-width:0;}
+.trk-title{font-size:13px;font-weight:600;margin-bottom:2px;}
+.trk-meta{font-size:11px;color:var(--muted);line-height:1.6;}
+.trk-actions{display:flex;gap:6px;margin-top:7px;}
+.trk-edit{background:rgba(255,140,0,.1);border:1px solid rgba(255,140,0,.2);color:var(--orange);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'Hind Siliguri',sans-serif;font-weight:600;}
+.trk-del{background:rgba(255,61,61,.08);border:1px solid rgba(255,61,61,.18);color:var(--red);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'Hind Siliguri',sans-serif;font-weight:600;}
+.trk-badge{font-family:'Teko',sans-serif;font-size:22px;align-self:center;flex-shrink:0;}
+
+.stat-row{display:flex;gap:8px;margin-bottom:12px;}
+.stat-chip{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;padding:10px;text-align:center;}
+.stat-n{font-family:'Teko',sans-serif;font-size:26px;line-height:1;}
+.stat-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+
+#editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;justify-content:flex-end;flex-direction:column;}
+#editModal.show{display:flex;}
+.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:18px 16px 36px;max-height:82vh;overflow-y:auto;animation:slideUp .22s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;}
+.modal-title{font-family:'Teko',sans-serif;font-size:21px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.modal-btns{display:flex;gap:8px;margin-top:10px;}
+.modal-btns .btn{flex:1;}
+
+select.inp{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23606080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+select.inp option{background:#13131f;color:var(--text);}
+textarea.inp{resize:none;min-height:72px;line-height:1.6;}
+
+/* OVERVIEW */
+.ov-period-btn{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:6px 14px;color:var(--muted);font-family:'Hind Siliguri',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.ov-period-btn.active{background:linear-gradient(135deg,var(--accent),var(--orange));border-color:transparent;color:#fff;font-weight:700;}
+.ov-day-row{display:grid;grid-template-columns:60px 1fr 8px 1fr;gap:4px;align-items:center;padding:4px 0;}
+.ov-day-lbl{font-size:11px;color:var(--muted);text-align:right;padding-right:6px;}
+.ov-bar-wrap{height:16px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden;}
+.ov-bar-fill{height:100%;border-radius:8px;transition:width .4s ease;}
+.ov-bar-me{background:linear-gradient(90deg,var(--accent),var(--orange));}
+.ov-bar-pt{background:linear-gradient(90deg,#7c3aed,#c084fc);}
+.ov-legend{display:flex;gap:12px;margin-bottom:8px;}
+.ov-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.ov-cat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.ov-cat-row:last-child{border:none;}
+.ov-detail-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.ov-detail-head{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;}
+.ov-detail-body{display:none;padding:0 12px 10px;font-size:12px;line-height:1.9;color:var(--muted);}
+.ov-detail-body.open{display:block;}
+
+/* Report window notice */
+#rNoWindow{background:rgba(255,140,0,.08);border:1px solid rgba(255,140,0,.25);border-radius:13px;padding:16px;text-align:center;margin-bottom:14px;display:none;}
+.no-window-ic{font-size:40px;margin-bottom:8px;}
+.no-window-t{font-family:'Teko',sans-serif;font-size:22px;color:var(--orange);margin-bottom:6px;}
+.no-window-m{font-size:13px;color:rgba(255,220,150,.85);line-height:1.7;}
+.no-window-clk{font-family:'Teko',sans-serif;font-size:38px;color:var(--gold);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div id="splashScreen"><img src="https://i.postimg.cc/258B9KJW/20260309-123928.png" style="width:140px;height:140px;object-fit:contain;margin-bottom:12px;"><div class="splash-logo">Ready4Challenge</div><div class="splash-spin"></div></div>
+<div id="toast"></div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle"> Edit</div>
+    <div id="modalBody"></div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-fire" id="modalSaveBtn" onclick="saveEdit()">সেভ করো</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD LOADING OVERLAY -->
+<div id="uploadOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);flex-direction:column;justify-content:center;align-items:center;gap:18px;">
+  <div style="border:4px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;width:56px;height:56px;animation:sp .7s linear infinite;"></div>
+  <div style="font-family:'Teko',sans-serif;font-size:26px;color:var(--text);letter-spacing:1px;">আপলোড হচ্ছে...</div>
+  <div style="font-size:13px;color:var(--muted);">একটু অপেক্ষা করুন</div>
+</div>
+
+<div id="lightbox" onclick="closeLB()"><img id="lbImg" src=""><button id="lbX" onclick="closeLB()">✕</button></div>
+
+<!-- LOCK OVERLAY -->
+<div id="lockOverlay">
+  <div class="lock-ic"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,40,40,.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+  <div class="lock-clk" id="lockClk">00:00</div>
+  <div class="lock-t">ফোন রাখো!</div>
+  <div class="lock-m">রাত ১২টার পর ফোন ব্যবহার<br>চ্যালেঞ্জের নিয়ম ভঙ্গ করে।<br><br>এখনই ঘুমাও!<br>সকাল ৭টায় আনলক হবে।</div>
+  <div id="lockWakeSection" style="display:none;margin-top:10px;text-align:center;">
+    <div style="font-size:13px;color:rgba(0,230,118,.8);margin-bottom:8px;">⏱️ ঘুমের timer চলছে</div>
+    <div class="sleep-timer" id="lockTimerDisp" style="font-size:36px;color:var(--green);line-height:1;margin-bottom:10px;">00:00:00</div>
+    <button class="btn btn-teal" style="max-width:220px;margin:0 auto;" onclick="trkEndSleep();document.getElementById('lockOverlay').dataset.bypass='1';document.getElementById('lockOverlay').classList.remove('show');"><span class="ic" style="margin-right:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></span>উঠে গেছি</button>
+  </div>
+  <button class="btn btn-danger btn-sm" style="width:auto;padding:9px 20px;margin-top:10px;" onclick="bypassLock()"><span class="ic" style="margin-right:4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>জরুরি কারণে খুলুন</button>
+</div>
+
+<!-- SOCIAL MEDIA WARNING -->
+<div id="socialWarn">
+  <div class="sw-icon"><svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="rgba(255,61,61,.7)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+  <div class="sw-title">সময় নষ্ট হচ্ছে!</div>
+  <div class="sw-msg">আপনি এখন সময় নষ্ট করছেন।<br>এই অভ্যাস আপনাকে পিছিয়ে দিচ্ছে।<br><br><strong style="color:var(--red)">ফিরে যান এখনই!</strong><br><br>সত্যিই জরুরি হলে নিচে ৫ মিনিটের জন্য ব্যবহার করুন।<br>তবে রিপোর্টে জরিমানা যোগ হবে।</div>
+  <div id="swCountdown" style="display:none;">
+    <div class="sw-timer" id="swTimer">5:00</div>
+    <div class="sw-timer-lbl">বাকি সময়</div>
+  </div>
+  <button class="btn btn-danger" style="max-width:260px;" onclick="dismissSocialWarn()">↩️ ফিরে যান</button>
+  <button class="btn btn-outline" style="max-width:260px;" onclick="allowSocial5min()">⏱️ জরুরি — ৫ মিনিট ব্যবহার করব</button>
+</div>
+
+<!-- WAKE OVERLAY -->
+<div id="wakeOverlay">
+  <div class="wake-t"><span class="ic" style="margin-right:6px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/></svg></span>সকাল হয়েছে!</div>
+  <div class="wake-sub">উঠে পড়ো। নিচের উক্তিটি সম্পূর্ণ টাইপ করলে confirm হবে।</div>
+  <div class="quote-card">
+    <div class="q-num">Quote #<span id="qNum">1</span> / 10</div>
+    <div class="q-txt" id="qTxt"></div>
+  </div>
+  <div class="type-card">
+    <div class="type-inst">নিচের উক্তিটি হুবহু টাইপ করো (ছোট/বড় হাতে মিলতে হবে না):</div>
+    <div class="type-tgt" id="typeTgt"></div>
+    <input class="inp" id="typeInp" placeholder="এখানে টাইপ করো..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" oninput="chkType()" onpaste="handlePaste(event);" oncopy="event.preventDefault();" oncut="event.preventDefault();" ondrop="event.preventDefault();">
+    <div class="type-prog" id="typeProg"></div>
+  </div>
+  <button class="btn btn-green" id="wakeBtn" disabled onclick="confirmWake()"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>নিশ্চিত করো — আমি উঠেছি</button>
+</div>
+
+<!-- REPORT BANNER -->
+<div id="rpBanner">
+  <div class="rb-txt">⏰ রিপোর্ট এখনো জমা হয়নি!</div>
+  <button class="rb-btn" onclick="gotoReport()">জমা দাও →</button>
+</div>
+
+<!-- LOGOUT POPUP -->
+<div id="logoutPopup">
+  <div class="logout-sheet">
+    <div class="logout-title"><span class="ic" style="margin-right:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>সতর্কতা!</div>
+    <div class="logout-sub">লগআউট করলে সব চ্যালেঞ্জ ডেটা থেকে বের হয়ে যাবে।<br>সত্যিই লগআউট করতে চাও?</div>
+    <textarea class="inp" id="logoutReason" placeholder="লগআউটের কারণ লেখো (বাধ্যতামূলক)..." style="min-height:80px;margin-bottom:14px;"></textarea>
+    <button class="btn btn-danger" onclick="confirmLogout()" style="margin-bottom:8px;"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>Give Up — লগআউট করো</button>
+    <button class="btn btn-outline" onclick="cancelLogout()">বাতিল — থাকব</button>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div style="text-align:center;">
+  <div style="text-align:center;margin-top:16px;margin-bottom:8px;"><img src="https://i.postimg.cc/258B9KJW/20260309-123928.png" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(255,69,0,.4));"></div>
+  <div class="auth-logo" style="font-size:42px;letter-spacing:2px;">Ready4Challenge</div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);text-align:center;">নিজেকে চ্যালেঞ্জ করো · বন্ধুকে জানাও</p>
+  <div class="card" id="bxL" style="width:100%;">
+    <div class="card-t"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span>লগইন</div>
+    <input class="inp" id="lE" type="email" placeholder="Email">
+    <input class="inp" id="lP" type="password" placeholder="Password">
+    <button class="btn btn-fire" onclick="doLogin()">লগইন করো</button>
+    <div class="auth-link" style="margin-top:4px;">পাসওয়ার্ড ভুলে গেছ? <span onclick="showForgot()">Reset করো</span></div>
+    <div class="auth-link">অ্যাকাউন্ট নেই? <span onclick="showReg()">রেজিস্ট্রেশন করো</span></div>
+  </div>
+  <div class="card" id="bxR" style="width:100%;display:none;">
+    <div class="card-t"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>নতুন অ্যাকাউন্ট</div>
+    <input class="inp" id="rN" type="text" placeholder="তোমার নাম">
+    <input class="inp" id="rE" type="email" placeholder="Gmail বা Email">
+    <input class="inp" id="rP" type="password" placeholder="Password (৬+ অক্ষর)">
+    <button class="btn btn-fire" onclick="doRegister()">অ্যাকাউন্ট তৈরি করো</button>
+    <div id="verifyMsg" style="display:none;" class="box box-info"> তোমার Email-এ একটি verification link পাঠানো হয়েছে। Link এ click করে verify করো, তারপর লগইন করো।</div>
+    <div class="auth-link">আগে থেকে আছে? <span onclick="showLogin()">লগইন করো</span></div>
+  </div>
+  <div class="card" id="bxF" style="width:100%;display:none;">
+    <div class="card-t"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span>পাসওয়ার্ড Reset</div>
+    <div class="box box-info" style="font-size:12px;margin-bottom:8px;">তোমার Email দাও। Password reset link পাঠানো হবে।</div>
+    <input class="inp" id="fE" type="email" placeholder="তোমার Email">
+    <button class="btn btn-fire" onclick="doForgot()"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Reset Link পাঠাও</button>
+    <div id="forgotMsg" style="display:none;" class="box box-info"></div>
+    <div class="auth-link" style="margin-top:4px;"><span onclick="showLogin()">← লগইনে ফিরে যাও</span></div>
+  </div>
+</div>
+
+<!-- APP BAR -->
+<div id="appBar">
+  <div class="bar-logo">R4C</div>
+  <div class="bar-user"><div class="av" id="hAv" onclick="switchTab('settings')">?</div><span class="av-name" id="hNm"></span></div>
+</div>
+
+<!-- CONTENT -->
+<div id="contentArea">
+
+  <!-- FEED -->
+  <div class="page active" id="pgFeed">
+    <div class="rules-box">
+      <div class="r-title"><span class="ic" style="margin-right:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 01-2-2V5h4"/><path d="M18 9h2a2 2 0 002-2V5h-4"/><path d="M6 5h12v6a6 6 0 01-12 0V5z"/><path d="M12 15v4"/><path d="M8 19h8"/></svg></span>চ্যালেঞ্জের নিয়ম:</div>
+      <div class="rule-item"><span class="rule-ic ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></span><span>রাত ১২টার আগে ঘুমাতে হবে</span></div>
+      <div class="rule-item"><span class="rule-ic ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/></svg></span><span>সকাল ৭টার আগে উঠতে হবে</span></div>
+      <div class="rule-item"><span class="rule-ic ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="1.5" width="14" height="21" rx="3" ry="3"/><rect x="7" y="4" width="10" height="13" rx="1"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span><span>সোশ্যাল মিডিয়া ব্যবহার নিষিদ্ধ</span></div>
+      <div class="rule-item"><span class="rule-ic ic" style="background:rgba(255,194,0,.1);border-color:rgba(255,194,0,.2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span>৫০% হারলে → <strong style="color:var(--gold)">৳১০ Donate</strong></span></div>
+      <div class="rule-item"><span class="rule-ic ic" style="background:rgba(255,61,61,.1);border-color:rgba(255,61,61,.2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span>১০০% হারলে → <strong style="color:var(--red)">৳২০ Donate</strong></span></div>
+    </div>
+    <div id="feedList"><div class="spin"></div></div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="page" id="pgReport">
+    <div class="sec-h"><span class="ic" style="opacity:.7"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> রিপোর্ট</div>
+    <div class="box box-danger"><strong><span class="ic" style="margin-right:4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>জরিমানা:</strong> ৫০% হারলে ৳১০ · ১০০% হারলে ৳২০ · <span style="color:var(--red)">Screenshot বাধ্যতামূলক (শুধু জরিমানায়)</span></div>
+
+    <!-- PENDING PENALTY LIST -->
+    <div id="pendingPenaltyList" style="display:none;"></div>
+
+    <!-- SLEEP TRACKER -->
+    <div class="card" style="border-color:rgba(192,132,252,.22);">
+      <div class="card-t" style="color:rgba(192,132,252,.85);">ঘুম ট্র্যাকিং</div>
+      <div id="slpTimerBlock" style="display:none;text-align:center;padding:4px 0 12px;">
+        <div class="sleep-timer" id="slpTimerDisp">00:00:00</div>
+        <div class="sleep-timer-lbl"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;animation:blink-a 1.2s infinite;"></span>ঘুমাচ্ছি...</div>
+      </div>
+      <div id="slpSummaryInline" style="display:none;"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-purple" id="slpStartBtn" onclick="trkStartSleep()" style="margin-bottom:0;flex:1;padding:11px;">ঘুমাতে যাচ্ছি</button>
+        <button class="btn btn-teal" id="slpWakeBtn" style="display:none;margin-bottom:0;flex:1;padding:11px;" onclick="trkEndSleep()">উঠে গেছি</button>
+      </div>
+    </div>
+
+    <div id="rForm">
+      <div id="rNoPtnr" class="box box-warn" style="display:none;"><span class="ic" style="margin-right:4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> রিপোর্ট পাঠাতে আগে পার্টনার যোগ করো (সেটিংস)।</div>
+
+      <!-- PUSH-UP TRACKER -->
+      <div class="card" style="border-color:rgba(255,140,0,.2);padding:10px 14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:rgba(255,140,0,.85);font-weight:600;letter-spacing:.5px;flex-shrink:0;display:flex;align-items:center;gap:5px;"><span class="ic"><svg width="16" height="16" viewBox="0 0 100 40" fill="currentColor"><rect x="0" y="12" width="8" height="16" rx="1"/><rect x="10" y="8" width="6" height="24" rx="1"/><rect x="18" y="4" width="10" height="32" rx="1"/><rect x="30" y="14" width="40" height="12" rx="1"/><rect x="72" y="4" width="10" height="32" rx="1"/><rect x="84" y="8" width="6" height="24" rx="1"/><rect x="92" y="12" width="8" height="16" rx="1"/></svg></span> PUSH-UPS</span>
+          <button class="num-adj" onclick="adjPu(-1)" style="width:30px;height:30px;font-size:18px;flex-shrink:0;">−</button>
+          <input class="num-inp-big" id="puInp" type="number" min="0" value="0" oninput="puLiveUpdate()" style="font-size:18px;flex:1;padding:5px;text-align:center;min-width:0;">
+          <button class="num-adj" onclick="adjPu(1)" style="width:30px;height:30px;font-size:18px;flex-shrink:0;">+</button>
+          <span id="puDayBadge" style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap;display:none;"></span>
+        </div>
+      </div>
+
+      <!-- SUCCESS RATE -->
+      <div class="card">
+        <div class="card-t">আজকের চ্যালেঞ্জ</div>
+        <div class="tgl-row"><div><div class="tgl-label">১২টার আগে ঘুমিয়েছি</div><div class="tgl-sub">রাত ১২টার আগে ঘুমিয়েছ?</div></div><button class="tgl" id="tSl" onclick="tog('sleep')"></button></div>
+        <div class="tgl-row"><div><div class="tgl-label">সকাল ৭টার আগে উঠেছি</div><div class="tgl-sub">৭টার আগে উঠেছ?</div></div><button class="tgl" id="tWk" onclick="tog('wake')"></button></div>
+        <div class="tgl-row"><div><div class="tgl-label">সোশ্যাল মিডিয়া নিয়ন্ত্রণ</div><div class="tgl-sub">৬০ সেকেন্ডের কম ব্যবহার করেছ?</div></div><button class="tgl" id="tSo" onclick="tog('social')"></button></div>
+      </div>
+      <div class="rate-box"><div class="rate-big" id="rateN">0%</div><div class="rate-sub">আজকের Success Rate</div></div>
+
+      <!-- SOCIAL MEDIA -->
+      <div id="smSection" style="display:block;" class="card" style="border-color:rgba(255,61,61,.2);">
+        <div class="card-t" style="color:rgba(255,120,120,.85);">সোশ্যাল মিডিয়া বিবরণ</div>
+        <div class="rpt-lbl">Platform</div>
+        <select class="inp" id="smPlatform" onchange="smFieldChange()">
+          <option value="">— বেছে নাও —</option>
+          <option>Facebook</option><option>Instagram</option><option>YouTube</option>
+          <option>Twitter / X</option><option>TikTok</option><option>WhatsApp</option><option>Others</option>
+        </select>
+        <div class="rpt-lbl">Reason</div>
+        <select class="inp" id="smReason" onchange="smFieldChange()">
+          <option value="">— বেছে নাও —</option>
+          <option>Boredom</option><option>Mood Swing</option><option>Learning</option>
+          <option>Work</option><option>Communication</option><option>Entertainment</option><option>Others</option>
+        </select>
+        <div class="rpt-lbl">Pass Time</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;"><input class="inp" id="smPassHr" type="number" min="0" max="23" placeholder="0" style="margin-bottom:2px;text-align:center;" oninput="smFieldChange()"><div style="font-size:10px;color:var(--muted);text-align:center;">ঘণ্টা</div></div>
+          <div style="flex:1;"><input class="inp" id="smPassMin" type="number" min="0" max="59" placeholder="0" style="margin-bottom:2px;text-align:center;" oninput="smFieldChange()"><div style="font-size:10px;color:var(--muted);text-align:center;">মিনিট</div></div>
+        </div>
+        <div class="rpt-lbl">Comment (ঐচ্ছিক)</div>
+        <textarea class="inp" id="smComment" placeholder="মন্তব্য..." style="min-height:52px;margin-bottom:0;" oninput="smFieldChange()"></textarea>
+      </div>
+
+      <!-- Penalty block -->
+      <div id="penBlk" style="display:none;" class="card">
+        <div style="color:var(--red);font-weight:700;font-size:14px;margin-bottom:6px;">জরিমানা প্রযোজ্য</div>
+        <div id="penAmt" style="font-size:26px;font-weight:700;color:var(--red);margin-bottom:5px;"></div>
+        <div id="penRsn" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
+        <div class="box box-info" style="margin:0;font-size:12px;">
+          <strong>কীভাবে Donate করবে:</strong><br>
+          Settings ট্যাব থেকে Donation সম্পন্ন করুন।<br>
+          <span id="ptnrBkashHint" style="color:var(--gold);font-weight:600;display:block;margin-top:4px;"></span>
+        </div>
+      </div>
+
+      <!-- Donate Screenshot -->
+      <div id="ssSection" style="display:none;" class="card">
+        <div class="card-t">Donate Screenshot (বাধ্যতামূলক)</div>
+        <div class="upload-z" id="upZ" onclick="document.getElementById('ssF').click()">
+          <div class="uz-ic ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+          <div class="uz-t">bKash বা Nagad থেকে Donate করার পর Screenshot আপলোড করো</div>
+        </div>
+        <div id="ssPrevWrap" style="display:none;position:relative;margin-bottom:6px;">
+          <img class="ss-prev" id="ssPrev" style="display:block;width:100%;border-radius:10px;max-height:180px;object-fit:cover;">
+          <button onclick="cancelSS()" style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+        </div>
+        <input type="file" id="ssF" accept="image/*" style="display:none" onchange="pickSS(this)">
+        <div id="upSt" style="font-size:13px;color:var(--muted);min-height:28px;display:flex;align-items:center;gap:8px;padding:4px 0;"></div>
+      </div>
+
+      <!-- Push-Up saved card -->
+      <div id="puSavedCard" style="display:none;" class="card" style="border-color:rgba(255,140,0,.15);">
+        <div class="card-t" style="color:rgba(255,140,0,.85);">পুশ-আপ — আজকের সারসংক্ষেপ</div>
+        <div id="puSavedBody"></div>
+      </div>
+
+      <!-- Report Preview -->
+      <div class="card">
+        <div class="card-t" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>রিপোর্ট প্রিভিউ</span>
+          <button onclick="togglePreviewEdit()" id="previewEditBtn" style="background:none;border:none;cursor:pointer;font-size:16px;padding:2px 6px;border-radius:6px;color:var(--muted);transition:color .15s;" title="Edit preview"><span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></button>
+        </div>
+        <div class="rp-prev" id="rpPrev">Report —
+—/—/—
+Success Rate : —</div>
+        <textarea id="rpPrevEdit" style="display:none;width:100%;background:#050505;border:1px solid var(--accent);border-radius:10px;padding:13px;font-family:monospace;font-size:12.5px;line-height:2;color:#00ff88;letter-spacing:.3px;resize:vertical;min-height:160px;outline:none;-webkit-user-select:text;user-select:text;" oninput="syncPreviewEdit()"></textarea>
+        <div id="previewEditHint" style="display:none;font-size:11px;color:var(--muted);margin-top:5px;">সরাসরি edit করো — জমা দেওয়ার সময় এই text-ই যাবে</div>
+      </div>
+      <button class="btn btn-green" id="subBtn" onclick="submitReport()">রিপোর্ট জমা দাও</button>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:5px;margin-bottom:4px;">জরিমানা থাকলে screenshot ছাড়া জমা হবে না</div>
+
+      <!-- Report History -->
+      <div style="margin-top:16px;">
+        <div class="sec-h" style="font-size:18px;"><span class="ic" style="opacity:.7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></span> আমার রিপোর্ট</div>
+        <div id="reportHistory"><div class="spin"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="pgchat-wrap" id="pgChat">
+    <div id="noPtnrC" class="box box-warn" style="margin:14px;display:none;"><span class="ic" style="margin-right:4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> চ্যাট করতে পার্টনার যোগ করো।</div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chat-bar" id="chatBar" style="display:none;">
+      <input class="chat-inp" id="chatInp" placeholder="মেসেজ লেখো..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMsg();event.preventDefault();}">
+      <button class="ic-btn ic-attach" onclick="document.getElementById('cImgF').click()"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></span></button>
+      <button class="ic-btn ic-send" onclick="sendMsg()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      <input type="file" id="cImgF" accept="image/*" style="display:none" onchange="sendImgMsg(this)">
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="page" id="pgOverview">
+    <div class="sec-h"><span class="ic" style="opacity:.7"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> ওভারভিউ</div>
+
+    <!-- No partner warning -->
+    <div id="ovNoPtnr" class="box box-warn" style="display:none;"><span class="ic" style="margin-right:4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> ওভারভিউ দেখতে পার্টনার যোগ করো।</div>
+
+    <!-- Period selector -->
+    <div id="ovContent" style="display:none;">
+      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;">
+        <button class="ov-period-btn active" id="ovp-7" onclick="ovSetPeriod(7)">৭ দিন</button>
+        <button class="ov-period-btn" id="ovp-14" onclick="ovSetPeriod(14)">১৪ দিন</button>
+        <button class="ov-period-btn" id="ovp-30" onclick="ovSetPeriod(30)">৩০ দিন</button>
+        <button class="ov-period-btn" id="ovp-0" onclick="ovSetPeriod(0)">সব</button>
+      </div>
+
+      <!-- Head-to-head compare card -->
+      <div class="card" style="border-color:rgba(255,140,0,.2);margin-bottom:12px;">
+        <div class="card-t"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="22" y1="2" x2="2" y2="22"/><line x1="5" y1="13" x2="11" y2="19"/></svg></span>তুলনা</div>
+        <div style="display:flex;align-items:center;gap:0;">
+          <!-- Me -->
+          <div style="flex:1;text-align:center;padding:10px 6px;">
+            <div id="ovMyAv" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--orange));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin:0 auto 6px;overflow:hidden;"></div>
+            <div id="ovMyName" style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;"></div>
+            <div id="ovMyRate" style="font-family:'Teko',sans-serif;font-size:38px;color:var(--green);line-height:1;"></div>
+            <div style="font-size:10px;color:var(--muted);">গড় সাফল্য</div>
+          </div>
+          <!-- VS -->
+          <div style="text-align:center;padding:0 4px;">
+            <div style="font-family:'Teko',sans-serif;font-size:22px;color:var(--muted);">VS</div>
+            <div id="ovWinner" style="font-size:18px;margin-top:4px;"></div>
+          </div>
+          <!-- Partner -->
+          <div style="flex:1;text-align:center;padding:10px 6px;">
+            <div id="ovPtnrAv" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#c084fc);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin:0 auto 6px;overflow:hidden;"></div>
+            <div id="ovPtnrName" style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;"></div>
+            <div id="ovPtnrRate" style="font-family:'Teko',sans-serif;font-size:38px;color:var(--green);line-height:1;"></div>
+            <div style="font-size:10px;color:var(--muted);">গড় সাফল্য</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stat-row" style="gap:8px;margin-bottom:12px;">
+        <div class="stat-chip" style="border-color:rgba(0,230,118,.2);">
+          <div class="stat-n" id="ovMyStreak" style="color:var(--green);">0</div>
+          <div class="stat-l">আমার streak <span class="ic" style="margin-left:3px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/></svg></span></div>
+        </div>
+        <div class="stat-chip" style="border-color:rgba(192,132,252,.2);">
+          <div class="stat-n" id="ovPtnrStreak" style="color:#c084fc;">0</div>
+          <div class="stat-l">Partner streak <span class="ic" style="margin-left:3px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/></svg></span></div>
+        </div>
+        <div class="stat-chip" style="border-color:rgba(255,194,0,.2);">
+          <div class="stat-n" id="ovMyPenTotal" style="color:var(--gold);">৳0</div>
+          <div class="stat-l">আমার মোট জরিমানা</div>
+        </div>
+        <div class="stat-chip" style="border-color:rgba(255,61,61,.2);">
+          <div class="stat-n" id="ovPtnrPenTotal" style="color:var(--red);">৳0</div>
+          <div class="stat-l">Partner মোট জরিমানা</div>
+        </div>
+      </div>
+
+      <!-- Category breakdown -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-t"><span class="ic" style="margin-right:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>বিস্তারিত বিশ্লেষণ</div>
+        <div id="ovBreakdown"></div>
+      </div>
+
+      <!-- Report detail list -->
+      <div class="sec-h" style="font-size:18px;"><span class="ic" style="opacity:.7;margin-right:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>রিপোর্টের তালিকা</div>
+      <div id="ovReportList"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="pgSettings">
+
+    <div class="sec-h"><span class="ic" style="opacity:.7"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span> সেটিংস</div>
+
+    <!-- PROFILE CARD -->
+    <div class="card" style="border-color:rgba(255,140,0,.2);">
+      <div class="profile-ig-wrap">
+        <div class="profile-ig-av" onclick="document.getElementById('profilePhotoFile').click()">
+          <div class="av-ring">
+            <div class="av-ring-inner" id="profileRingInner">
+              <span class="av-initial" id="profilePicInitial">?</span>
+            </div>
+          </div>
+          <div class="edit-cam ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+        </div>
+        <input type="file" id="profilePhotoFile" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
+        <div id="profilePhotoStatus"></div>
+        <div class="profile-ig-name" id="profileIgName">—</div>
+        <div class="profile-ig-email" id="profileIgEmail">—</div>
+        <div class="profile-ig-bio" id="profileIgBio" onclick="showBioEdit()" style="cursor:pointer;min-height:20px;">
+          <span id="profileBioText" style="color:var(--muted);font-style:italic;">+ bio যোগ করো...</span>
+        </div>
+        <div class="bio-edit-row" id="bioEditRow" style="display:none;">
+          <input class="bio-inp" id="bioInp" type="text" maxlength="100" placeholder="তোমার bio লেখো...">
+          <button class="bio-save-btn" onclick="saveBio()">সেভ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:rgba(124,77,255,.25);">
+      <div class="card-t" style="color:rgba(180,140,255,.7);"><span class="ic" style="margin-right:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>চ্যালেঞ্জ পার্টনার</div>
+      <div id="ptnrInfo"></div>
+      <div id="ptnrSetup">
+        <input class="inp" id="ptnrEm" type="email" placeholder="পার্টনারের Email">
+        <button class="btn btn-fire" style="margin-top:2px;" onclick="addPartner()"> পার্টনার যোগ করো</button>
+      </div>
+    </div>
+
+    <!-- CHALLENGE PENALTY CARD -->
+    <div class="card" style="border-color:rgba(226,19,110,.25);">
+      <div class="card-t" style="color:rgba(226,19,110,.9);"><span class="ic" style="margin-right:5px"><svg width="15" height="15" viewBox="0 0 28 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="16" height="20" rx="2"/><line x1="5" y1="7" x2="13" y2="7"/><line x1="5" y1="11" x2="11" y2="11"/><circle cx="5" cy="15" r="1.5" fill="currentColor" stroke="none"/><path d="M18 20l4-7 4 7H18z"/><line x1="22" y1="16" x2="22" y2="18"/><line x1="22" y1="19.5" x2="22.01" y2="19.5" stroke-width="2"/></svg></span>Challenge Penalty</div>
+      <div class="box box-info" style="margin-bottom:14px;font-size:12.5px;line-height:1.8;">
+        Challenge হেরে গেলে আপনাকে Donation করতে হবে।<br>
+        আপনার Number পার্টনারকে পাঠান অথবা<br>
+        <strong style="color:var(--gold);">bKash / Nagad</strong> থেকে যেকোনো Charity Foundation-এ Donate করুন।
+      </div>
+      <div class="tgl-row" style="border:none;padding:0;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:10px;">
+        <span class="rpt-lbl"><span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg></span> আপনার Number</span>
+        <div style="display:flex;gap:8px;width:100%;">
+          <input class="inp" id="myBk" type="tel" placeholder="01XXXXXXXXX" style="margin-bottom:0;flex:1;">
+          <button class="btn btn-fire btn-sm" onclick="saveBkash()" style="white-space:nowrap;padding:0 14px;height:46px;border-radius:10px;"> সেভ</button>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="margin-bottom:14px;" onclick="sendMyNumberToPartner()"> পার্টনারকে নম্বর পাঠান</button>
+      <div class="tgl-row" style="border:none;padding:0;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:14px;">
+        <span class="rpt-lbl"><span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span> পার্টনারের Number</span>
+        <input class="inp" id="ptnrBk" type="tel" placeholder="পার্টনার পাঠালে এখানে দেখাবে" style="margin-bottom:0;color:var(--gold);" readonly>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:11px;color:var(--muted);letter-spacing:.5px;">অথবা</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <button class="btn btn-green" style="margin-bottom:10px;" onclick="openDonationPage()"><span class="ic" style="margin-right:5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span>Charity Foundation-এ Donate করুন</button>
+      <button class="btn btn-outline" style="font-size:13px;" onclick="sendFeedback()"> Send Feedback</button>
+    </div>
+
+    <div class="card" style="border-color:rgba(255,61,61,.15);">
+      <button class="btn btn-danger" onclick="showLogoutPopup()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> লগআউট</button>
+    </div>
+  </div>
+
+</div><!-- contentArea -->
+
+<div id="botNav">
+  <div class="nav-wrap">
+    <button class="nav-btn active" id="ni-feed" onclick="switchTab('feed')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>ফিড</span>
+    </button>
+    <button class="nav-btn" id="ni-report" onclick="switchTab('report')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>রিপোর্ট</span>
+    </button>
+    <button class="nav-btn" id="ni-overview" onclick="switchTab('overview')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>ওভারভিউ</span>
+    </button>
+    <button class="nav-btn" id="ni-chat" onclick="switchTab('chat')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>চ্যাট</span>
+      <span class="nav-badge" id="chatBadge" style="display:none;">0</span>
+    </button>
+    <button class="nav-btn" id="ni-settings" onclick="switchTab('settings')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>সেটিংস</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyCIUELzyVDBNCQe9fRlqk7MAbcYDI0zFfc",
+  authDomain:"exchange-4469e.firebaseapp.com",
+  databaseURL:"https://exchange-4469e-default-rtdb.firebaseio.com",
+  projectId:"exchange-4469e",
+  storageBucket:"exchange-4469e.firebasestorage.app",
+  messagingSenderId:"1016900593749",
+  appId:"1:1016900593749:web:99f944319788d37c758cdc"
+});
+const auth=firebase.auth(), db=firebase.database();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.warn('persistence:',e));
+
+const IMGBB_KEY = "e34de7af67b12bc70b48126444f36329";
+const SOCIAL_DOMAINS = ["facebook.com","fb.com","instagram.com","tiktok.com","twitter.com","x.com","youtube.com","snapchat.com","reddit.com","linkedin.com","pinterest.com","tumblr.com","whatsapp.com","telegram.org","discord.com"];
+
+let ME=null, PARTNER=null;
+let isRegistering=false;
+let USER_PHOTO_URL=null;
+let RS={sleep:false,wake:false,social:false};
+let pendingSS=null;
+let feedOff=null, chatOff=null, penaltyOff=null;
+let clockInt=null;
+let socialAllowed=false, socialTimer=null;
+let noWindowClkInt=null;
+
+const QUOTES=[
+  {q:"The secret of your future is hidden in your daily routine.",a:"Mike Murdock"},
+  {q:"Every morning you have two choices: continue to sleep with your dreams, or wake up and chase them.",a:"Unknown"},
+  {q:"Time is the most valuable thing a man can spend.",a:"Theophrastus"},
+  {q:"It is well to be up before daybreak for such habits contribute to health wealth and wisdom.",a:"Aristotle"},
+  {q:"Lose an hour in the morning and you will spend all day looking for it.",a:"Richard Whately"},
+  {q:"The early morning has gold in its mouth.",a:"Benjamin Franklin"},
+  {q:"You have to fight through some bad days to earn the best days of your life.",a:"Unknown"},
+  {q:"Wake up with determination go to bed with satisfaction.",a:"Unknown"},
+  {q:"Success is the sum of small efforts repeated day in and day out.",a:"Robert Collier"},
+  {q:"Discipline is the bridge between goals and accomplishment.",a:"Jim Rohn"}
+];
+let qIdx=0;
+
+// ── Utils ─────────────────────────────────────────────────────
+function toast(m,t='ok'){
+  const el=document.getElementById('toast');
+  el.innerHTML=m; el.className=`toast show ${t}`;
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className='toast',3200);
+}
+
+// ── KEY FUNCTIONS ─────────────────────────────────────────────
+// সাধারণ calendar date key (ঘুম tracker, feed ইত্যাদির জন্য)
+function todayKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// রিপোর্ট window key:
+// রাত ৮PM (20:00) থেকে পরদিন রাত ৭:৫৯ PM (19:59) পর্যন্ত একই key
+// মানে: যদি এখন রাত ৮ এর আগে হয়, তাহলে আগের দিনের key ব্যবহার করি।
+// ফলে রাত ২টায় দিলে, পরদিন রাত ৮টার আগে সেই key-ই থাকে — submit block হয়।
+// কিন্তু রাত ৮টার পরে নতুন key তৈরি হয় → নতুন রিপোর্ট দেওয়া যায়।
+function reportWindowKey(){
+  const d=new Date();
+  // ঘণ্টা ২০ (রাত ৮PM) এর আগে হলে আগের দিনের date ব্যবহার করো
+  if(d.getHours() < 20){
+    d.setDate(d.getDate() - 1);
+  }
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// রিপোর্ট জমা দেওয়ার window: রাত ৮:০০ PM – ১১:৫৯ PM
+function isReportWindow(){
+  const h = new Date().getHours();
+  return h >= 20 && h <= 23;
+}
+
+// রাত ৮টা পর্যন্ত countdown (HH:MM:SS ফরম্যাটে)
+function timeUntilReportWindow(){
+  const now=new Date();
+  const next8PM=new Date(now);
+  next8PM.setHours(20,0,0,0);
+  if(now >= next8PM) return '00:00:00';
+  const diff=next8PM-now;
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function fmtT(ts){if(!ts)return '';const d=new Date(ts);return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function fmtDT(ts){if(!ts)return '';const d=new Date(ts);return `${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('show');}
+function closeLB(){document.getElementById('lightbox').classList.remove('show');}
+function showLogin(){document.getElementById('bxL').style.display='block';document.getElementById('bxR').style.display='none';document.getElementById('bxF').style.display='none';}
+function showReg(){document.getElementById('bxL').style.display='none';document.getElementById('bxR').style.display='block';document.getElementById('bxF').style.display='none';}
+function showForgot(){document.getElementById('bxL').style.display='none';document.getElementById('bxR').style.display='none';document.getElementById('bxF').style.display='block';}
+
+// ── ImgBB Upload ──────────────────────────────────────────────
+async function uploadImg(file){
+  const form=new FormData();
+  form.append('image',file);
+  try{
+    const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:form});
+    const data=await res.json();
+    if(data.success) return data.data.url;
+    throw new Error('ImgBB upload failed');
+  }catch(e){
+    return new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>{
+        const b=e.target.result;
+        if(b.length>700000){rej(new Error('ছবি অনেক বড়!'));return;}
+        res(b);
+      };
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+  }
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+async function doLogin(){
+  const e=document.getElementById('lE').value.trim(),p=document.getElementById('lP').value;
+  if(!e||!p){toast('Email ও Password দাও','err');return;}
+  const btn=document.querySelector('#bxL .btn-fire');
+  if(btn){btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22"/><path d="M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>লগইন হচ্ছে...';btn.disabled=true;}
+  try{
+    const c=await auth.signInWithEmailAndPassword(e,p);
+    if(!c.user.emailVerified){
+      await c.user.sendEmailVerification().catch(()=>{});
+      await auth.signOut();
+      if(btn){btn.textContent='লগইন করো';btn.disabled=false;}
+      toast('📧 Email verify করোনি! Verification email পাঠানো হয়েছে।','warn');
+      return;
+    }
+    if(btn){btn.textContent='লগইন করো';btn.disabled=false;}
+  }catch(er){
+    if(btn){btn.textContent='লগইন করো';btn.disabled=false;}
+    const msg={'auth/user-not-found':'এই Email এ কোনো অ্যাকাউন্ট নেই।','auth/wrong-password':'Password ভুল।','auth/invalid-credential':'Email বা Password ভুল।','auth/too-many-requests':'অনেকবার চেষ্টা হয়েছে।'};
+    toast(msg[er.code]||'লগইন ব্যর্থ হয়েছে।','err');
+  }
+}
+async function doRegister(){
+  const n=document.getElementById('rN').value.trim(),e=document.getElementById('rE').value.trim(),p=document.getElementById('rP').value;
+  if(!n||!e||!p){toast('সব তথ্য পূরণ করো','err');return;}
+  if(p.length<6){toast('Password কমপক্ষে ৬ অক্ষর','err');return;}
+  const btn=document.querySelector('#bxR .btn-fire');
+  if(btn){btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22"/><path d="M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>তৈরি হচ্ছে...';btn.disabled=true;}
+  isRegistering=true;
+  try{
+    const c=await auth.createUserWithEmailAndPassword(e,p);
+    await c.user.updateProfile({displayName:n});
+    const regDateKey=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})();
+    await db.ref(`users/${c.user.uid}`).set({name:n,email:e.toLowerCase(),uid:c.user.uid,bkash:'',ptnrBkash:'',bio:'',registeredAt:regDateKey,registeredTs:Date.now()});
+    await c.user.sendEmailVerification();
+    await auth.signOut();
+    isRegistering=false;
+    document.getElementById('authScreen').style.display='flex';
+    document.getElementById('appBar').style.display='none';
+    document.getElementById('botNav').style.display='none';
+    const vm=document.getElementById('verifyMsg');
+    if(vm)vm.style.display='block';
+    if(btn){btn.textContent='অ্যাকাউন্ট তৈরি করো';btn.disabled=false;}
+    toast('📧 Verification email পাঠানো হয়েছে!');
+  }catch(er){
+    isRegistering=false;
+    await auth.signOut().catch(()=>{});
+    if(btn){btn.textContent='অ্যাকাউন্ট তৈরি করো';btn.disabled=false;}
+    const msg={'auth/email-already-in-use':'এই Email ইতিমধ্যে ব্যবহৃত হচ্ছে।','auth/invalid-email':'সঠিক Email দাও।','auth/weak-password':'Password আরো শক্তিশালী করো।'};
+    toast(msg[er.code]||er.message,'err');
+  }
+}
+async function doForgot(){
+  const e=document.getElementById('fE').value.trim();
+  if(!e){toast('Email দাও','err');return;}
+  const btn=document.querySelector('#bxF .btn-fire');
+  if(btn){btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22"/><path d="M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>পাঠানো হচ্ছে...';btn.disabled=true;}
+  try{
+    await auth.sendPasswordResetEmail(e);
+    const fm=document.getElementById('forgotMsg');
+    if(fm){fm.style.display='block';fm.textContent='Reset link পাঠানো হয়েছে!';}
+    toast('📧 Password reset email গেছে!');
+    if(btn){btn.textContent='📧 Reset Link পাঠাও';btn.disabled=false;}
+  }catch(er){
+    if(btn){btn.textContent='📧 Reset Link পাঠাও';btn.disabled=false;}
+    const msg={'auth/user-not-found':'এই Email এ কোনো অ্যাকাউন্ট নেই।','auth/invalid-email':'সঠিক Email দাও।'};
+    toast(msg[er.code]||er.message,'err');
+  }
+}
+function showLogoutPopup(){document.getElementById('logoutReason').value='';document.getElementById('logoutPopup').classList.add('show');}
+function cancelLogout(){document.getElementById('logoutPopup').classList.remove('show');}
+function confirmLogout(){
+  const reason=document.getElementById('logoutReason').value.trim();
+  if(!reason){toast('লগআউটের কারণ লেখো','err');return;}
+  if(feedOff){try{feedOff();}catch(e){}feedOff=null;}
+  if(chatOff){try{chatOff();}catch(e){}chatOff=null;}
+  if(penaltyOff){try{penaltyOff();}catch(e){}penaltyOff=null;}
+  if(clockInt){clearInterval(clockInt);clockInt=null;}
+  if(slpInterval){clearInterval(slpInterval);slpInterval=null;}
+  if(socialTimer){clearInterval(socialTimer);socialTimer=null;}
+  if(noWindowClkInt){clearInterval(noWindowClkInt);noWindowClkInt=null;}
+  try{
+    if(PARTNER&&ME){
+      const room=[ME.uid,PARTNER.uid].sort().join('_');
+      const msgKey=db.ref('chats/'+room).push().key;
+      db.ref('chats/'+room+'/'+msgKey).set({
+        uid:ME.uid,name:ME.name,
+        text:'🚪 '+ME.name+' লগআউট করেছে।\n📝 কারণ: '+reason,
+        ts:Date.now(),isLogoutMsg:true
+      });
+    }
+  }catch(e){}
+  ME=null;PARTNER=null;
+  document.getElementById('logoutPopup').classList.remove('show');
+  document.getElementById('appBar').style.display='none';
+  document.getElementById('botNav').style.display='none';
+  document.getElementById('lockOverlay').classList.remove('show');
+  document.getElementById('wakeOverlay').classList.remove('show');
+  document.getElementById('rpBanner').classList.remove('show');
+  document.getElementById('authScreen').style.display='flex';
+  const bxL=document.getElementById('bxL');if(bxL)bxL.style.display='block';
+  const bxR=document.getElementById('bxR');if(bxR)bxR.style.display='none';
+  const bxF=document.getElementById('bxF');if(bxF)bxF.style.display='none';
+  auth.signOut().catch(e=>console.warn('signOut:',e));
+}
+
+auth.onAuthStateChanged(async u=>{
+  const splash=document.getElementById('splashScreen');
+  if(u && (isRegistering || !u.emailVerified)){
+    if(splash)splash.style.display='none';
+    document.getElementById('authScreen').style.display='flex';
+    document.getElementById('appBar').style.display='none';
+    document.getElementById('botNav').style.display='none';
+    return;
+  }
+  if(u){
+    const s=await db.ref(`users/${u.uid}`).once('value');
+    const d=s.val()||{};
+    ME={uid:u.uid,name:d.name||u.displayName||'User',email:u.email,bkash:d.bkash||'',ptnrBkash:d.ptnrBkash||'',photoUrl:d.photoUrl||'',bio:d.bio||'',registeredAt:d.registeredAt||null};
+    USER_PHOTO_URL=d.photoUrl||null;
+    if(!d.email&&u.email){db.ref(`users/${u.uid}`).update({email:u.email.toLowerCase(),uid:u.uid});}
+    // পুরনো user যাদের registeredAt নেই
+    if(!d.registeredAt){const _rk=(()=>{const _d=new Date();return `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;})();await db.ref(`users/${u.uid}`).update({registeredAt:_rk,registeredTs:Date.now()});ME.registeredAt=_rk;}
+    document.getElementById('hNm').textContent=ME.name;
+    updateAllAvatars();
+    if(d.bkash)document.getElementById('myBk').value=d.bkash;
+    if(d.ptnrBkash)document.getElementById('ptnrBk').value=d.ptnrBkash;
+    const pigN=document.getElementById('profileIgName');if(pigN)pigN.textContent=ME.name;
+    const pigE=document.getElementById('profileIgEmail');if(pigE)pigE.textContent=ME.email;
+    renderBio(ME.bio);
+    document.getElementById('authScreen').style.display='none';
+    document.getElementById('appBar').style.display='flex';
+    document.getElementById('botNav').style.display='flex';
+    if(splash)splash.style.display='none';
+    await loadPartner();
+    initFeed();
+    loadReportHistory();
+    checkTodayReport();
+    loadPendingPenalties();
+    startPenaltyListener();
+    startClock();
+    checkWakePrompt();
+    initSocialGuard();
+    initCopyGuard();
+    initTracker();
+  } else {
+    ME=null;PARTNER=null;
+    document.getElementById('authScreen').style.display='flex';
+    document.getElementById('appBar').style.display='none';
+    document.getElementById('botNav').style.display='none';
+    document.getElementById('lockOverlay').classList.remove('show');
+    document.getElementById('wakeOverlay').classList.remove('show');
+    document.getElementById('rpBanner').classList.remove('show');
+    if(splash)splash.style.display='none';
+  }
+});
+
+// ── Bio ───────────────────────────────────────────────────────
+function renderBio(bio){
+  const el=document.getElementById('profileBioText');
+  if(!el)return;
+  if(bio&&bio.trim()){
+    el.textContent=bio;
+    el.style.color='var(--text)';
+    el.style.fontStyle='normal';
+  } else {
+    el.textContent='+ bio যোগ করো...';
+    el.style.color='var(--muted)';
+    el.style.fontStyle='italic';
+  }
+}
+function showBioEdit(){
+  const row=document.getElementById('bioEditRow');
+  const inp=document.getElementById('bioInp');
+  if(row.style.display==='none'){
+    inp.value=ME.bio||'';
+    row.style.display='flex';
+    inp.focus();
+  } else {
+    row.style.display='none';
+  }
+}
+async function saveBio(){
+  const bio=document.getElementById('bioInp').value.trim();
+  ME.bio=bio;
+  await db.ref(`users/${ME.uid}`).update({bio});
+  renderBio(bio);
+  document.getElementById('bioEditRow').style.display='none';
+  toast('Bio সেভ হয়েছে');
+}
+
+// ── Partner ───────────────────────────────────────────────────
+async function loadPartner(){
+  const s=await db.ref(`users/${ME.uid}/partner`).once('value');
+  const pUid=s.val();
+  if(pUid){
+    const ps=await db.ref(`users/${pUid}`).once('value');
+    PARTNER=ps.val()||{};renderPtnr();initChat();
+  } else {PARTNER=null;renderPtnr();}
+}
+function renderPtnr(){
+  const info=document.getElementById('ptnrInfo');
+  const setup=document.getElementById('ptnrSetup');
+  const nR=document.getElementById('rNoPtnr');
+  const nC=document.getElementById('noPtnrC');
+  const cBar=document.getElementById('chatBar');
+  const hint=document.getElementById('ptnrBkashHint');
+  if(PARTNER){
+    const ptnrAvHtml=getAvatarHTML(PARTNER.photoUrl||null,PARTNER.name,34);
+    const bioPart=PARTNER.bio?`<div style="font-size:11px;color:rgba(240,239,255,.6);margin-top:2px;">${PARTNER.bio}</div>`:'';
+    info.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">${ptnrAvHtml}<div><div style="font-size:14px;font-weight:600;">${PARTNER.name}</div><div style="font-size:11px;color:var(--muted);">${PARTNER.email}</div>${bioPart}</div></div>`;
+    setup.innerHTML=`<button class="btn btn-danger btn-sm" onclick="removePartner()">পার্টনার পরিবর্তন</button>`;
+    if(nR)nR.style.display='none';
+    if(nC)nC.style.display='none';
+    if(cBar)cBar.style.display='flex';
+    if(hint)hint.textContent=ME.ptnrBkash?`পার্টনারের bKash: ${ME.ptnrBkash}`:'সেটিংসে পার্টনারের bKash নম্বর দাও।';
+  } else {
+    info.innerHTML=`<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">কোনো পার্টনার নেই</div>`;
+    setup.innerHTML=`<input class="inp" id="ptnrEm" type="email" placeholder="পার্টনারের Email"><button class="btn btn-fire" style="margin-top:2px;" onclick="addPartner()"> পার্টনার যোগ করো</button>`;
+    if(nR)nR.style.display='block';
+    if(nC)nC.style.display='block';
+    if(cBar)cBar.style.display='none';
+  }
+}
+async function addPartner(){
+  const em=document.getElementById('ptnrEm').value.trim().toLowerCase();
+  if(!em){toast('Email দাও','err');return;}
+  if(em===ME.email.toLowerCase()){toast('নিজের email দেওয়া যাবে না','err');return;}
+  const btn=document.querySelector('#ptnrSetup button');
+  if(btn){btn.disabled=true;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22"/><path d="M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>খোঁজা হচ্ছে...';}
+  try{
+    const s=await db.ref('users').orderByChild('email').equalTo(em).once('value');
+    if(!s.exists()){toast('এই email-এ কোনো account নেই','err');if(btn){btn.disabled=false;btn.textContent='🤝 পার্টনার যোগ করো';}return;}
+    const pd=Object.values(s.val())[0];
+    await db.ref(`users/${ME.uid}/partner`).set(pd.uid);
+    await db.ref(`users/${pd.uid}/partner`).set(ME.uid);
+    PARTNER=pd;renderPtnr();toast(`${pd.name} পার্টনার হয়েছে!`);initChat();
+  }catch(e){
+    toast('Error: '+e.message,'err');
+    if(btn){btn.disabled=false;btn.textContent='🤝 পার্টনার যোগ করো';}
+  }
+}
+async function removePartner(){
+  if(!PARTNER)return;
+  await db.ref(`users/${ME.uid}/partner`).remove();
+  await db.ref(`users/${PARTNER.uid}/partner`).remove();
+  PARTNER=null;renderPtnr();toast('পার্টনার সরানো হয়েছে','warn');
+}
+async function saveBkash(){
+  const my=document.getElementById('myBk').value.trim();
+  ME.bkash=my;
+  await db.ref(`users/${ME.uid}`).update({bkash:my});
+  const h=document.getElementById('ptnrBkashHint');
+  if(h)h.textContent=ME.ptnrBkash?`পার্টনারের bKash: ${ME.ptnrBkash}`:'সেটিংসে পার্টনারের bKash নম্বর দাও।';
+  toast('নম্বর সংরক্ষিত');
+}
+async function sendMyNumberToPartner(){
+  if(!ME){toast('লগইন করো','err');return;}
+  if(!ME.bkash){toast('আগে আপনার নম্বর সেভ করুন','err');return;}
+  if(!PARTNER){toast('পার্টনার যোগ করো আগে','err');return;}
+  try{
+    const room=[ME.uid,PARTNER.uid].sort().join('_');
+    await db.ref('chats/'+room).push({uid:ME.uid,name:ME.name,photoUrl:ME.photoUrl||'',text:' Challenge হেরে গেলে — Penalty পাঠাও: '+ME.bkash,ts:firebase.database.ServerValue.TIMESTAMP});
+    toast('নম্বর পার্টনারকে পাঠানো হয়েছে');
+    switchTab('chat');
+  }catch(e){toast('পাঠানো যায়নি: '+e.message,'err');}
+}
+function openDonationPage(){window.open('https://www.bkash.com/en/products-services/donation','_blank');}
+function sendFeedback(){window.open('mailto:anixroy007@gmail.com?subject=Ready4Challenge Feedback','_blank');}
+
+// ── Report ────────────────────────────────────────────────────
+async function checkTodayReport(){
+  if(!ME)return;
+  try{
+    // reportWindowKey() ব্যবহার করি — রাত ৮PM window-based
+    const s=await db.ref(`reports/${ME.uid}/${reportWindowKey()}`).once('value');
+    const done=s&&s.exists()&&s.val()&&s.val().submitted;
+
+    // form সবসময় দেখাবে — কখনো hide হবে না
+    document.getElementById('rForm').style.display='block';
+    const subBtn=document.getElementById('subBtn');
+    if(done){
+      document.getElementById('rpBanner').classList.remove('show');
+      if(subBtn){
+        subBtn.disabled=true;
+        subBtn.textContent='আজকের রিপোর্ট জমা হয়েছে';
+        subBtn.style.background='rgba(0,230,118,.15)';
+        subBtn.style.color='var(--green)';
+        subBtn.style.border='1px solid rgba(0,230,118,.3)';
+      }
+    } else {
+      if(subBtn){
+        subBtn.disabled=false;
+        subBtn.textContent='রিপোর্ট জমা দাও';
+        subBtn.style.background='';
+        subBtn.style.color='';
+        subBtn.style.border='';
+      }
+    }
+  }catch(err){console.warn('checkTodayReport err',err);}
+}
+
+// রাত ৮টা পর্যন্ত countdown চালাও
+function startNoWindowCountdown(){
+  if(noWindowClkInt)clearInterval(noWindowClkInt);
+  const tick=()=>{
+    const clkEl=document.getElementById('noWindowClk');
+    if(!clkEl)return;
+    if(isReportWindow()){
+      // সময় হয়ে গেছে — form দেখাও
+      clearInterval(noWindowClkInt);noWindowClkInt=null;
+      checkTodayReport();
+      return;
+    }
+    clkEl.textContent=timeUntilReportWindow();
+  };
+  tick();
+  noWindowClkInt=setInterval(tick,1000);
+}
+
+function tog(k){
+  RS[k]=!RS[k];
+  document.getElementById('tSl').className='tgl'+(RS.sleep?' on':'');
+  document.getElementById('tWk').className='tgl'+(RS.wake?' on':'');
+  document.getElementById('tSo').className='tgl'+(RS.social?' on':'');
+  updateRateUI();
+}
+document.addEventListener('DOMContentLoaded',function(){updateRateUI();});
+function getRate(){let r=0;if(RS.sleep&&RS.wake)r+=50;if(RS.social)r+=50;return r;}
+function getPen(r){return r===50?10:r===0?20:0;}
+function updateRateUI(){
+  const r=getRate(),pen=getPen(r);
+  const rn=document.getElementById('rateN');
+  rn.textContent=r+'%';
+  rn.style.color=r===100?'var(--green)':r===50?'var(--gold)':'var(--red)';
+  const pb=document.getElementById('penBlk');
+  const ss=document.getElementById('ssSection');
+  const smSec=document.getElementById('smSection');
+  if(smSec)smSec.style.display=(!RS.social)?'block':'none';
+  if(pen>0){
+    pb.style.display='block';
+    document.getElementById('penAmt').textContent=`৳${pen} Donate করতে হবে`;
+    let rsn='নিয়ম ভাঙায় জরিমানা প্রদান করুন।';
+    document.getElementById('penRsn').textContent=rsn;
+    ss.style.display='block';
+  } else {
+    pb.style.display='none';ss.style.display='none';pendingSS=null;
+    document.getElementById('ssPrev').style.display='none';
+    document.getElementById('upZ').style.display='block';
+    document.getElementById('upSt').textContent='';
+  }
+  buildPreview();
+}
+function buildPreview(){
+  const r=getRate();
+  const now=new Date();
+  const dd=String(now.getDate()).padStart(2,'0'),mm=String(now.getMonth()+1).padStart(2,'0'),yy=String(now.getFullYear()).slice(2);
+  const ic=r===100?'●':r===50?'◐':'○';
+  const sl=(RS.sleep&&RS.wake)?'50':'0',so=RS.social?'50':'0';
+  const slpStart=RS._slpStartTime||null;
+  const slpEnd=RS._slpEndTime||null;
+  const slpDur=RS._slpDuration||null;
+  const puCount=RS._puCount||0;
+  const puDay=RS._puDayNum||'—';
+  const pad=(s,n)=>s+' '.repeat(Math.max(0,n-s.length));
+  const line=(lbl,val)=>pad(lbl,16)+': '+val;
+  let lines=[];
+  lines.push(`Report ${ic}`);
+  lines.push(line('Date',`${dd}/${mm}/${yy}`));
+  lines.push(line('Success Rate',`${sl} + ${so} = ${r}%`));
+  if(puCount>0)lines.push(line('Push-Ups',`${puCount} (Day ${puDay})`));
+  if(slpStart)lines.push(line('Sleeping at',slpStart));
+  if(slpEnd)lines.push(line('Wake Up',slpEnd));
+  if(slpDur)lines.push(line('Total Sleep',slpDur));
+  if(!RS.social){
+    const pl=document.getElementById('smPlatform');
+    const re=document.getElementById('smReason');
+    const cm=document.getElementById('smComment');
+    const ptHr=parseInt(document.getElementById('smPassHr')?document.getElementById('smPassHr').value:'0')||0;
+    const ptMin=parseInt(document.getElementById('smPassMin')?document.getElementById('smPassMin').value:'0')||0;
+    if(pl&&pl.value)lines.push(line('Platform',pl.value));
+    if(re&&re.value)lines.push(line('Reason',re.value));
+    if(ptHr>0||ptMin>0)lines.push(line('Pass Time',`${ptHr}h ${ptMin}m`));
+    const cmv=cm?cm.value.trim():'';
+    if(cmv)lines.push(line('Comment',cmv));
+  }
+  const txt=lines.join('\n');
+  const rpPrevEl=document.getElementById('rpPrev');
+  if(rpPrevEl)rpPrevEl.textContent=txt;
+  const editArea=document.getElementById('rpPrevEdit');
+  if(editArea&&editArea.style.display!=='none'){editArea.value=txt;}
+  RS._lastBuiltTxt=txt;
+}
+
+let _previewEditing=false;
+let _originalPreviewText='';
+function togglePreviewEdit(){
+  const view=document.getElementById('rpPrev');
+  const edit=document.getElementById('rpPrevEdit');
+  const hint=document.getElementById('previewEditHint');
+  const btn=document.getElementById('previewEditBtn');
+  _previewEditing=!_previewEditing;
+  if(_previewEditing){
+    _originalPreviewText=view.textContent;
+    edit.value=view.textContent;
+    view.style.display='none';edit.style.display='block';hint.style.display='block';
+    btn.style.color='var(--accent)';edit.focus();
+  } else {
+    const rawText=edit.value;
+    const newText=addEditedTag(_originalPreviewText,rawText);
+    view.textContent=newText;_originalPreviewText=newText;edit.value=newText;
+    view.style.display='block';edit.style.display='none';hint.style.display='none';
+    btn.style.color='var(--muted)';
+  }
+}
+function addEditedTag(original,edited){
+  const origLines=original.split('\n');
+  const editLines=edited.split('\n');
+  const result=[];
+  for(let i=0;i<editLines.length;i++){
+    let line=editLines[i];
+    const origLine=origLines[i]||'';
+    const isSleepLine=line.match(/^Sleeping at/)||line.match(/^Wake Up/);
+    if(isSleepLine&&line!==origLine&&!line.includes('[Edited]')){line=line+' [Edited]';}
+    result.push(line);
+  }
+  return result.join('\n');
+}
+function syncPreviewEdit(){
+  const edit=document.getElementById('rpPrevEdit');
+  const view=document.getElementById('rpPrev');
+  if(view)view.textContent=edit.value;
+}
+function pickSS(input){
+  const file=input.files[0];if(!file)return;
+  pendingSS=file;
+  const upSt=document.getElementById('upSt');
+  // বড় loading দেখাও
+  if(upSt)upSt.innerHTML='<div class="spin" style="width:28px;height:28px;border-width:3px;flex-shrink:0;"></div><span style="color:var(--muted);">লোড হচ্ছে...</span>';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('ssPrev');
+    const wrap=document.getElementById('ssPrevWrap');
+    if(img){img.src=e.target.result;}
+    if(wrap)wrap.style.display='block';
+    document.getElementById('upZ').style.display='none';
+    if(upSt)upSt.innerHTML='';
+  };
+  reader.readAsDataURL(file);
+}
+function cancelSS(){
+  pendingSS=null;
+  const img=document.getElementById('ssPrev');
+  const wrap=document.getElementById('ssPrevWrap');
+  const upSt=document.getElementById('upSt');
+  const ssF=document.getElementById('ssF');
+  if(img){img.src='';img.style.display='none';}
+  if(wrap)wrap.style.display='none';
+  document.getElementById('upZ').style.display='block';
+  document.getElementById('upZ').style.borderColor='';
+  if(upSt)upSt.innerHTML='';
+  if(ssF)ssF.value='';
+}
+
+async function submitReport(){
+  if(!ME){toast('লগইন করো','err');return;}
+  if(!PARTNER){toast('পার্টনার যোগ করো আগে','err');return;}
+  if(!isReportWindow()){toast('⏰ রিপোর্ট শুধু রাত ৮:০০ PM – ১১:৫৯ PM এ জমা দেওয়া যাবে!','err');return;}
+
+  // বকেয়া penalty আছে কিনা check করো (আজকের তারিখ বাদে)
+  const penSnap=await db.ref(`penalties/${ME.uid}`).once('value');
+  const _winKey=reportWindowKey();
+  const _calKey=todayKey();
+  let hasPending=false;
+  if(penSnap.exists()){
+    penSnap.forEach(c=>{
+      const v=c.val();
+      const dk=c.key;
+      // আজকের date বাদ দাও — এখনো রিপোর্ট দেওয়ার সুযোগ আছে
+      if(dk===_winKey||dk===_calKey)return;
+      if(v&&v.paid!==true)hasPending=true;
+    });
+  }
+  if(hasPending){
+    toast('❌ বকেয়া জরিমানা আছে! আগে পরিশোধ করো।','err');
+    switchTab('report');
+    return;
+  }
+
+  const r=getRate(),pen=getPen(r);
+  if(pen>0&&!pendingSS){toast('❌ Donate screenshot দাও আগে!','err');document.getElementById('upZ').style.borderColor='var(--red)';return;}
+  if(!RS.social){
+    const pl=document.getElementById('smPlatform').value;
+    const re=document.getElementById('smReason').value;
+    if(!pl||!re){toast('সোশ্যাল মিডিয়ার Platform ও Reason বেছে নাও','err');return;}
+  }
+  const btn=document.getElementById('subBtn');
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22"/><path d="M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>জমা হচ্ছে...';btn.disabled=true;
+  try{
+    let ssUrl='';
+    if(pendingSS){
+      const _ov=document.getElementById('uploadOverlay');
+      if(_ov)_ov.style.display='flex';
+      try{
+        ssUrl=await uploadImg(pendingSS);
+      }finally{
+        if(_ov)_ov.style.display='none';
+      }
+    }
+    const now=new Date();
+    const dd=String(now.getDate()).padStart(2,'0'),mm=String(now.getMonth()+1).padStart(2,'0'),yy=String(now.getFullYear()).slice(2);
+    const ic=r===100?'●':r===50?'◐':'○';
+    const sl=(RS.sleep&&RS.wake)?'50':'0',so=RS.social?'50':'0';
+    const puCount=RS._puCount||0;
+    const puDay=RS._puDayNum||'—';
+    const slpStart=RS._slpStartTime||null;
+    const slpEnd=RS._slpEndTime||null;
+    const slpDur=RS._slpDuration||null;
+    const pad=(s,n)=>s+' '.repeat(Math.max(0,n-s.length));
+    const line=(lbl,val)=>pad(lbl,16)+': '+val;
+    let lines=[`Report ${ic}`,line('Date',`${dd}/${mm}/${yy}`),line('Success Rate',`${sl} + ${so} = ${r}%`)];
+    if(puCount>0)lines.push(line('Push-Ups',`${puCount} (Day ${puDay})`));
+    if(slpStart)lines.push(line('Sleeping at',slpStart));
+    if(slpEnd)lines.push(line('Wake Up',slpEnd));
+    if(slpDur)lines.push(line('Total Sleep',slpDur));
+    let smPlatform='',smReason='',smComment='',smPassTime='';
+    if(!RS.social){
+      smPlatform=document.getElementById('smPlatform').value;
+      smReason=document.getElementById('smReason').value;
+      smComment=document.getElementById('smComment').value.trim();
+      const ptH=parseInt(document.getElementById('smPassHr').value)||0;
+      const ptM=parseInt(document.getElementById('smPassMin').value)||0;
+      smPassTime=(ptH>0||ptM>0)?`${ptH}h ${ptM}m`:'';
+      if(smPlatform)lines.push(line('Platform',smPlatform));
+      if(smReason)lines.push(line('Reason',smReason));
+      if(smPassTime)lines.push(line('Pass Time',smPassTime));
+      if(smComment)lines.push(line('Comment',smComment));
+    }
+    const previewEl=document.getElementById('rpPrev');
+    const editEl=document.getElementById('rpPrevEdit');
+    let previewTxt='';
+    if(_previewEditing&&editEl){
+      previewTxt=addEditedTag(_originalPreviewText,editEl.value);
+      _previewEditing=false;
+      previewEl.textContent=previewTxt;
+      editEl.style.display='none';previewEl.style.display='block';
+    } else {
+      previewTxt=previewEl?previewEl.textContent.trim():'';
+    }
+    const txt=previewTxt||RS._lastBuiltTxt||lines.join('\n');
+    const payload={
+      uid:ME.uid,name:ME.name,photoUrl:ME.photoUrl||'',partnerUid:PARTNER.uid,
+      type:'report',
+      date:reportWindowKey(),
+      ts:firebase.database.ServerValue.TIMESTAMP,rate:r,penalty:pen,
+      reportText:txt,ssUrl,submitted:true,comments:{},
+      pushups:puCount,pushupDay:puDay,
+      sleepStart:RS._slpStartTime||'—',sleepEnd:RS._slpEndTime||'—',sleepDuration:RS._slpDuration||'—',
+      smPlatform,smReason,smComment,smPassTime
+    };
+    // ← reportWindowKey ব্যবহার
+    await db.ref(`reports/${ME.uid}/${reportWindowKey()}`).set(payload);
+    await db.ref(`feed/${ME.uid}_${reportWindowKey()}`).set(payload);
+
+    if(puCount>0){
+      const today2=trkFmtDate();
+      const puRecord={id:trkUID(),type:'pushup',count:puCount,note:'',date:today2,time:trkFmtTime(),savedAt:Date.now()};
+      try{await db.ref(`tracker/${ME.uid}/pushup_logs/${puRecord.id}`).set(puRecord);}catch(e){}
+    }
+
+    toast('রিপোর্ট জমা হয়েছে!');
+    pendingSS=null;
+    const _sp=document.getElementById('smPlatform');if(_sp)_sp.value='';
+    const _sr=document.getElementById('smReason');if(_sr)_sr.value='';
+    const _sc=document.getElementById('smComment');if(_sc)_sc.value='';
+    const _sh=document.getElementById('smPassHr');if(_sh)_sh.value='';
+    const _sm=document.getElementById('smPassMin');if(_sm)_sm.value='';
+
+    await checkTodayReport();  // ← button disable হবে
+    await loadReportHistory();
+    initFeed();
+    switchTab('feed');
+    btn.textContent='রিপোর্ট জমা দাও';btn.disabled=false;
+  }catch(e){
+    toast('রিপোর্ট জমা হয়েছে!','ok');
+    btn.textContent='রিপোর্ট জমা দাও';btn.disabled=false;
+    await checkTodayReport();
+    await loadReportHistory();
+    initFeed();
+    switchTab('feed');
+  }
+}
+
+// ── Report History ─────────────────────────────────────────────
+async function loadReportHistory(){
+  if(!ME)return;
+  const histEl=document.getElementById('reportHistory');
+  histEl.innerHTML='<div class="spin"></div>';
+  const s=await db.ref('feed').orderByChild('uid').equalTo(ME.uid).limitToLast(50).once('value');
+  if(!s.exists()){histEl.innerHTML='<div class="empty"><div class="empty-ic ic"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>কোনো ইতিহাস নেই</div>';return;}
+  const items=[];
+  s.forEach(c=>{
+    const v=c.val();
+    // শুধু রিপোর্ট দেখাবে — payment/coach post নয়
+    if(v && (v.type==='report' || (!v.type && v.rate!==undefined))){
+      items.push({key:c.key,...v});
+    }
+  });
+  items.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(!items.length){histEl.innerHTML='<div class="empty"><div class="empty-ic ic"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>কোনো ইতিহাস নেই</div>';return;}
+  histEl.innerHTML=items.map(p=>buildPost(p,'hist')).join('');
+}
+
+// ── Penalty System ─────────────────────────────────────────────
+
+// Registration date থেকে আজ পর্যন্ত সব date list তৈরি করো
+function getDatesSinceRegistration(registeredAt){
+  const dates=[];
+  if(!registeredAt)return dates;
+  const [ry,rm,rd]=registeredAt.split('-').map(Number);
+  let cur=new Date(ry,rm-1,rd);
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  while(cur<=today){
+    dates.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);
+    cur.setDate(cur.getDate()+1);
+  }
+  return dates;
+}
+
+// প্রতিটি তারিখের জন্য penalty check — batch read, fast for 1000+ days
+async function checkAndCreatePenalties(){
+  if(!ME)return;
+  const regDate=ME.registeredAt;
+  if(!regDate)return;
+
+  const winKey=reportWindowKey();
+  const calKey=todayKey();
+
+  // একবারেই সব reports ও penalties Firebase থেকে নাও
+  const [repSnap,penSnap]=await Promise.all([
+    db.ref(`reports/${ME.uid}`).once('value'),
+    db.ref(`penalties/${ME.uid}`).once('value'),
+  ]);
+
+  const myReps={},myPens={};
+  if(repSnap.exists())repSnap.forEach(c=>{if(c.val()&&c.val().submitted)myReps[c.key]=true;});
+  if(penSnap.exists())penSnap.forEach(c=>{myPens[c.key]=true;});
+
+  const allDates=getDatesSinceRegistration(regDate);
+  const newPenalties={};
+
+  for(const dateKey of allDates){
+    if(dateKey===winKey||dateKey===calKey)continue; // আজ skip
+    if(myPens[dateKey])continue;                    // penalty আগেই আছে → skip
+    if(myReps[dateKey])continue;                    // report আছে → penalty নেই
+    // report নেই, penalty নেই → নতুন penalty
+    newPenalties[dateKey]={dateKey,amount:20,paid:false,createdAt:Date.now()};
+  }
+
+  // একবারে সব write করো
+  if(Object.keys(newPenalties).length>0){
+    await db.ref(`penalties/${ME.uid}`).update(newPenalties);
+  }
+}
+
+// Coach post তৈরি করো — batch read, fast for 1000+ days
+async function createCoachPostsForMissedDays(){
+  if(!ME)return;
+  const regDate=ME.registeredAt;
+  if(!regDate)return;
+
+  const winKey=reportWindowKey();
+  const calKey=todayKey();
+
+  // একবারেই সব data নাও
+  const fetches=[
+    db.ref(`reports/${ME.uid}`).once('value'),
+    db.ref(`penalties/${ME.uid}`).once('value'),
+    db.ref('feed').orderByChild('forUid').equalTo(ME.uid).once('value'),
+  ];
+  if(PARTNER&&PARTNER.uid){
+    fetches.push(db.ref(`penalties/${PARTNER.uid}`).once('value'));
+  }
+  const results=await Promise.all(fetches);
+  const [myRepSnap,myPenSnap,feedSnap,ptnrPenSnap]=results;
+
+  const myReps={},myPens={},existingCoach={},ptnrPens={};
+  if(myRepSnap.exists())myRepSnap.forEach(c=>{if(c.val()&&c.val().submitted)myReps[c.key]=true;});
+  if(myPenSnap.exists())myPenSnap.forEach(c=>{myPens[c.key]=c.val();});
+  if(feedSnap.exists())feedSnap.forEach(c=>{const v=c.val();if(v&&v.type==='coach')existingCoach[v.dateKey]=true;});
+  if(ptnrPenSnap&&ptnrPenSnap.exists())ptnrPenSnap.forEach(c=>{ptnrPens[c.key]=c.val();});
+
+  // partner reports feed থেকে নাও
+  const ptnrReps={};
+  if(PARTNER){
+    const pFeedSnap=await db.ref('feed').orderByChild('uid').equalTo(PARTNER.uid).once('value');
+    if(pFeedSnap.exists())pFeedSnap.forEach(c=>{
+      const v=c.val();
+      if(v&&v.submitted&&v.type==='report'&&v.date)ptnrReps[v.date]=true;
+    });
+  }
+
+  const allDates=getDatesSinceRegistration(regDate);
+  const feedUpdates={};
+
+  for(const dateKey of allDates){
+    if(dateKey===winKey||dateKey===calKey)continue;
+    if(existingCoach[dateKey])continue; // coach post আগেই আছে
+
+    const myMissed=!myReps[dateKey];
+    const ptnrMissed=PARTNER&&!ptnrReps[dateKey];
+    if(!myMissed&&!ptnrMissed)continue; // দুজনেই দিয়েছে
+
+    const myPen=myPens[dateKey];
+    const myPenAmt=myPen?myPen.amount:20; // penalty না থাকলে default ২০
+    const myPenPaid=myPen?myPen.paid===true:false;
+
+    const ptnrPen=ptnrPens[dateKey];
+    // partner miss করলে ও তার penalty এখনো তৈরি না হলে → default ২০
+    const ptnrPenAmt=ptnrMissed?(ptnrPen?ptnrPen.amount:20):0;
+    const ptnrPenPaid=ptnrPen?ptnrPen.paid===true:false;
+
+    const [yy,mm,dd]=dateKey.split('-');
+    const dispDate=`${dd}/${mm} 00:00`;
+
+    let coachText='';
+    if(myMissed){
+      coachText+=`<span style="display:inline-flex;align-items:center;margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg></span> তুমি রিপোর্ট দাও নি → ৳${myPenAmt} জরিমানা${myPenPaid?' পরিশোধিত ✓':' <span style="display:inline-flex;align-items:center;margin-right:2px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>'}\n`;
+    }
+    // partner রিপোর্ট দিয়েছে → তার লাইন দেখাবে না
+    if(ptnrMissed&&PARTNER){
+      coachText+=`<span style="display:inline-flex;align-items:center;margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg></span> ${PARTNER.name} রিপোর্ট দেয় নি → ৳${ptnrPenAmt} জরিমানা${ptnrPenPaid?' পরিশোধিত ✓':' <span style="display:inline-flex;align-items:center;margin-right:2px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>'}`;
+    }
+
+    const coachKey=`coach_${ME.uid}_${dateKey}`;
+    const coachTs=new Date(+yy,+mm-1,+dd,0,0,0).getTime()+1000;
+
+    feedUpdates[coachKey]={
+      type:'coach',uid:'coach',name:'R4C Coach',
+      forUid:ME.uid,partnerUid:PARTNER?PARTNER.uid:'',
+      dateKey,dispDate,reportText:coachText.trim(),
+      ts:coachTs,penalty:myPenAmt,
+      myMissed,ptnrMissed,myPenPaid,ptnrPenPaid,
+      submitted:true,comments:{}
+    };
+  }
+
+  // একবারে সব coach post write
+  if(Object.keys(feedUpdates).length>0){
+    await db.ref('feed').update(feedUpdates);
+  }
+}
+
+// Coach post update করো (paid status পরিবর্তন হলে)
+async function updateCoachPost(dateKey){
+  if(!ME)return;
+  const coachKey=`coach_${ME.uid}_${dateKey}`;
+  const myPen=await db.ref(`penalties/${ME.uid}/${dateKey}`).once('value');
+  const myPenAmt=myPen.exists()?myPen.val().amount:20;
+  const myPenPaid=myPen.exists()?myPen.val().paid===true:false;
+
+  let ptnrPenAmt=20,ptnrPenPaid=false;
+  if(PARTNER&&PARTNER.uid){
+    const pp=await db.ref(`penalties/${PARTNER.uid}/${dateKey}`).once('value');
+    if(pp.exists()){ptnrPenAmt=pp.val().amount||20;ptnrPenPaid=pp.val().paid===true;}
+  }
+
+  const myRep=await db.ref(`reports/${ME.uid}/${dateKey}`).once('value');
+  const myMissed=!myRep.exists()||!myRep.val().submitted;
+
+  // partner report — feed থেকে check
+  let ptnrMissed=false;
+  if(PARTNER){
+    const pFeed=await db.ref('feed').orderByChild('uid').equalTo(PARTNER.uid).once('value');
+    let ptnrHasRep=false;
+    if(pFeed.exists())pFeed.forEach(c=>{const v=c.val();if(v&&v.type==='report'&&v.date===dateKey)ptnrHasRep=true;});
+    ptnrMissed=!ptnrHasRep;
+  }
+
+  let coachText='';
+  if(myMissed){
+    const paidTag=myPenPaid?` পরিশোধিত ✓`:`<span style="display:inline-flex;align-items:center;margin-right:2px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>`;
+    coachText+=`<span style="display:inline-flex;align-items:center;margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg></span> তুমি রিপোর্ট দাও নি → ৳${myPenAmt} জরিমানা${paidTag}\n`;
+  }
+  // partner রিপোর্ট দিয়েছে → তার লাইন দেখাবে না
+  if(ptnrMissed&&PARTNER){
+    const ptnrPaidTag=ptnrPenPaid?` পরিশোধিত ✓`:`<span style="display:inline-flex;align-items:center;margin-right:2px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>`;
+    coachText+=`<span style="display:inline-flex;align-items:center;margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg></span> ${PARTNER.name} রিপোর্ট দেয় নি → ৳${ptnrPenAmt} জরিমানা${ptnrPaidTag}`;
+  }
+  await db.ref(`feed/${coachKey}`).update({reportText:coachText.trim(),myPenPaid,ptnrPenPaid});
+}
+
+let _currentPendingList=[];
+
+// Pending penalty সব দেখাও (Report tab-এ)
+async function loadPendingPenalties(){
+  if(!ME)return;
+
+  // Firebase থেকে fresh data নাও
+  const penSnap=await db.ref(`penalties/${ME.uid}`).once('value');
+  const _winKey=reportWindowKey();
+  const _calKey=todayKey();
+  const all=[];
+  if(penSnap.exists()){
+    penSnap.forEach(c=>{
+      const v=c.val();
+      const dk=c.key;
+      // আজকের date বাদ দাও
+      if(dk===_winKey||dk===_calKey)return;
+      // শুধু unpaid penalty দেখাও
+      if(v && v.paid!==true) all.push({...v, dateKey:dk});
+    });
+  }
+
+  const penListEl=document.getElementById('pendingPenaltyList');
+  if(!penListEl)return;
+
+  if(!all.length){
+    penListEl.innerHTML='';
+    penListEl.style.display='none';
+    _currentPendingList=[];
+    return;
+  }
+
+  all.sort((a,b)=>a.dateKey.localeCompare(b.dateKey));
+  const total=all.reduce((s,p)=>s+(p.amount||20),0);
+  _currentPendingList=all; // global-এ রাখো
+
+  let html=`<div class="card" style="border-color:rgba(255,61,61,.35);margin-bottom:12px;">
+  <div style="color:var(--red);font-weight:700;font-size:15px;margin-bottom:8px;">বকেয়া জরিমানা</div>`;
+  for(const p of all){
+    const [y,m,d]=p.dateKey.split('-');
+    const disp=`${d}/${m}/${y}`;
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,61,61,.1);">
+      <span style="font-size:13px;color:rgba(255,150,150,.9);">${disp} এর জরিমানা</span>
+      <span style="font-size:14px;font-weight:700;color:var(--red);">৳${p.amount||20}</span>
+    </div>`;
+  }
+  html+=`<div style="margin-top:10px;padding:10px;background:rgba(255,61,61,.07);border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:13px;color:rgba(255,200,150,.9);">মোট বকেয়া</span>
+    <span style="font-size:20px;font-weight:700;color:var(--red);">৳${total}</span>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;">রিপোর্ট submit করার আগে পরিশোধ করতে হবে।</div>
+  <button class="btn btn-danger" style="margin-top:10px;" onclick="openPayPenaltyModal()"><span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>পরিশোধ করুন — ৳${total}</button>
+  </div>`;
+  penListEl.innerHTML=html;
+  penListEl.style.display='block';
+}
+
+// Real-time penalty sync — Firebase পরিবর্তন হলে UI auto-update
+function startPenaltyListener(){
+  if(!ME)return;
+  if(penaltyOff){try{penaltyOff();}catch(e){}penaltyOff=null;}
+  penaltyOff=db.ref(`penalties/${ME.uid}`).on('value',()=>{
+    loadPendingPenalties();
+  });
+}
+
+// Penalty payment modal — global _currentPendingList ব্যবহার করে
+function openPayPenaltyModal(){
+  const pendingList=_currentPendingList;
+  if(!pendingList||!pendingList.length){toast('কোনো বকেয়া নেই','err');return;}
+  const total=pendingList.reduce((s,p)=>s+(p.amount||20),0);
+  const listHtml=pendingList.map(p=>{
+    const [y,m,d]=p.dateKey.split('-');
+    return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="display:inline-flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${d}/${m}/${y}</span><span style="color:var(--red);font-weight:700;">৳${p.amount||20}</span></div>`;
+  }).join('');
+  openModal('জরিমানা পরিশোধ',`
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">নিচের তারিখগুলোর জরিমানা পরিশোধ করতে screenshot আপলোড করো:</div>
+    ${listHtml}
+    <div style="font-size:18px;font-weight:700;color:var(--red);text-align:right;margin:10px 0;">মোট: ৳${total}</div>
+    <div class="upload-z" id="penUpZ" onclick="document.getElementById('penSsF').click()">
+      <div class="uz-ic ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+      <div class="uz-t">bKash বা Nagad থেকে Donate করার পর Screenshot আপলোড করো</div>
+    </div>
+    <div id="penSsPrevWrap" style="display:none;position:relative;margin-bottom:6px;">
+      <img id="penSsPrev" style="display:block;width:100%;border-radius:10px;max-height:180px;object-fit:cover;">
+      <button onclick="cancelPenSS()" style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+    </div>
+    <input type="file" id="penSsF" accept="image/*" style="display:none" onchange="pickPenSS(this)">
+    <div id="penUpSt" style="font-size:13px;color:var(--muted);min-height:28px;display:flex;align-items:center;gap:8px;padding:4px 0;"></div>
+  `,()=>submitPenaltyPayment(pendingList,total));
+  // modal save button-এর text পরিবর্তন করো
+  setTimeout(()=>{const btn=document.getElementById('modalSaveBtn');if(btn)btn.textContent='আপলোড করুন';},50);
+}
+
+let _pendingPenSS=null;
+function pickPenSS(input){
+  const file=input.files[0];if(!file)return;
+  _pendingPenSS=file;
+  const st=document.getElementById('penUpSt');
+  if(st)st.innerHTML='<div class="spin" style="width:28px;height:28px;border-width:3px;flex-shrink:0;"></div><span style="color:var(--muted);">লোড হচ্ছে...</span>';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('penSsPrev');
+    const wrap=document.getElementById('penSsPrevWrap');
+    if(img)img.src=e.target.result;
+    if(wrap)wrap.style.display='block';
+    const uz=document.getElementById('penUpZ');if(uz)uz.style.display='none';
+    if(st)st.innerHTML='';
+  };
+  reader.readAsDataURL(file);
+}
+function cancelPenSS(){
+  _pendingPenSS=null;
+  const img=document.getElementById('penSsPrev');
+  const wrap=document.getElementById('penSsPrevWrap');
+  const st=document.getElementById('penUpSt');
+  const f=document.getElementById('penSsF');
+  if(img)img.src='';
+  if(wrap)wrap.style.display='none';
+  const uz=document.getElementById('penUpZ');if(uz)uz.style.display='block';
+  if(st)st.innerHTML='';
+  if(f)f.value='';
+}
+
+async function submitPenaltyPayment(pendingList,total){
+  if(!_pendingPenSS){toast('Screenshot দাও আগে!','err');return;}
+  // full-screen loading overlay দেখাও
+  const overlay=document.getElementById('uploadOverlay');
+  if(overlay)overlay.style.display='flex';
+  const st=document.getElementById('penUpSt');
+  let ssUrl='';
+  try{
+    ssUrl=await uploadImg(_pendingPenSS);
+  }catch(e){
+    if(overlay)overlay.style.display='none';
+    toast('Upload ব্যর্থ: '+e.message,'err');
+    return;
+  }
+  // upload সফল → overlay বন্ধ করো এবং modal বন্ধ করো
+  if(overlay)overlay.style.display='none';
+  closeModal();
+
+  const paidAt=Date.now();
+  const paidDateLabel=pendingList.map(p=>{const [y,m,d]=p.dateKey.split('-');return `${d}/${m}/${y}`;}).join(', ');
+
+  // প্রতিটি তারিখের penalty Firebase-এ paid:true করো
+  for(const p of pendingList){
+    // Firebase থেকে আবার verify করো — ইতিমধ্যে paid হয়ে গেছে কিনা
+    const freshSnap=await db.ref(`penalties/${ME.uid}/${p.dateKey}`).once('value');
+    if(freshSnap.exists() && freshSnap.val().paid===true){
+      continue; // ইতিমধ্যে paid — skip
+    }
+    await db.ref(`penalties/${ME.uid}/${p.dateKey}`).update({
+      paid:true,
+      paidAt,
+      paidSsUrl:ssUrl,
+      paidAmount:p.amount||20
+    });
+    // Coach post-এ update করো
+    await updateCoachPost(p.dateKey);
+  }
+
+  // Feed-এ payment post যোগ করো
+  const payKey=`payment_${ME.uid}_${Date.now()}`;
+  await db.ref(`feed/${payKey}`).set({
+    type:'payment',
+    uid:ME.uid,
+    name:ME.name,
+    photoUrl:ME.photoUrl||'',
+    reportText:`জরিমানা পরিশোধ করা হয়েছে\nতারিখ: ${paidDateLabel}\nপরিমাণ: ৳${total}`,
+    ssUrl,
+    ts:paidAt,
+    penalty:total,
+    paidDates:pendingList.map(p=>p.dateKey),
+    submitted:true,
+    comments:{}
+  });
+
+  closeModal();  // ইতিমধ্যে উপরে বন্ধ হয়েছে, নিরাপদের জন্য রাখা
+  _pendingPenSS=null;
+  _currentPendingList=[];
+  toast(`৳${total} জরিমানা পরিশোধ সম্পন্ন!`);
+
+  // Firebase থেকে fresh load — পরিশোধিত জরিমানা আর দেখাবে না
+  await loadPendingPenalties();
+  initFeed();
+}
+
+// ── Feed ──────────────────────────────────────────────────────
+async function initFeed(){
+  if(!ME)return;
+  // Penalty check ও coach post তৈরি (background-এ)
+  if(PARTNER){
+    checkAndCreatePenalties().then(()=>createCoachPostsForMissedDays()).catch(e=>console.warn('coach/penalty:',e));
+  }
+  if(feedOff){feedOff();feedOff=null;}
+  const el=document.getElementById('feedList');
+  el.innerHTML='<div class="spin"></div>';
+  feedOff=db.ref('feed').orderByChild('ts').on('value',snap=>{
+    const posts=[];
+    if(snap.exists())snap.forEach(c=>{
+      const v=c.val();
+      // নিজের post, partner-এর post, coach post (forUid === ME.uid)
+      if(v.uid===ME.uid||(PARTNER&&v.uid===PARTNER.uid)||(v.type==='coach'&&v.forUid===ME.uid)||(v.type==='payment'&&v.uid===ME.uid)||(PARTNER&&v.type==='payment'&&v.uid===PARTNER.uid)){
+        posts.push({key:c.key,...v});
+      }
+    });
+    // dateKey বের করো প্রতিটি post-এর জন্য
+    const getDateKey=p=>{
+      if(p.date)return p.date; // report-এ date আছে
+      if(p.dateKey)return p.dateKey; // coach-এ dateKey আছে
+      if(p.paidDates&&p.paidDates.length)return p.paidDates[p.paidDates.length-1]; // payment-এ paidDates
+      if(p.ts){const d=new Date(p.ts);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+      return '0000-00-00';
+    };
+    const typeOrder={report:0,payment:1,coach:2};
+    posts.sort((a,b)=>{
+      const dkA=getDateKey(a), dkB=getDateKey(b);
+      // নতুন তারিখ আগে
+      if(dkA!==dkB)return dkB.localeCompare(dkA);
+      // একই তারিখে: report → payment → coach
+      const ta=typeOrder[a.type]??0;
+      const tb=typeOrder[b.type]??0;
+      if(ta!==tb)return ta-tb;
+      // একই type-এ ts দিয়ে
+      return (b.ts||0)-(a.ts||0);
+    });
+    if(!posts.length){el.innerHTML='<div class="empty"><div class="empty-ic ic"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>এখনো কোনো রিপোর্ট নেই</div>';return;}
+    el.innerHTML=posts.map(p=>buildPost(p,'feed')).join('');
+  });
+}
+
+function buildPost(p, ctx){
+  ctx = ctx || 'feed';
+
+  // ── Coach Post ──────────────────────────────────────────────
+  if(p.type==='coach'){
+    const [y,m,d]=p.dateKey.split('-');
+    const dispDate=`${d}/${m} 00:00`;
+    return `<div class="post" id="p-${ctx}-${p.key}" style="border-color:rgba(255,61,61,.3);">
+      <div class="post-h">
+        <div class="av" style="background:linear-gradient(135deg,#ff3d3d,#ff8c00);width:36px;height:36px;font-size:16px;"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8V5"/><circle cx="12" cy="3" r="1"/><line x1="8" y1="13" x2="8.01" y2="13" stroke-width="2.5"/><line x1="16" y1="13" x2="16.01" y2="13" stroke-width="2.5"/><path d="M8 17h8"/></svg></span></div>
+        <div class="post-meta">
+          <div class="post-nm">R4C Coach</div>
+          <div class="post-dt">${dispDate}</div>
+        </div>
+        <div class="rate-badge rb-0" style="font-size:12px;padding:3px 8px;">মিস</div>
+      </div>
+      <div style="padding:4px 13px 6px;font-size:11px;color:var(--muted);">${d}/${m}/${y} এর রিপোর্ট পর্যালোচনা করা হয়েছে।</div>
+      <div class="post-txt" style="color:rgba(255,150,150,.9);">${p.reportText||''}</div>
+    </div>`;
+  }
+
+  // ── Payment Post ─────────────────────────────────────────────
+  if(p.type==='payment'){
+    const isMe=p.uid===ME.uid;
+    const postPhoto=isMe?(ME.photoUrl||null):(p.photoUrl||null);
+    const avHtml=getAvatarHTML(postPhoto,p.name,36);
+    return `<div class="post" id="p-${ctx}-${p.key}" style="border-color:rgba(0,230,118,.25);">
+      <div class="post-h">${avHtml}
+        <div class="post-meta">
+          <div class="post-nm">${p.name}${isMe?' <span style="font-size:10px;color:var(--muted)">(আমি)</span>':''}</div>
+          <div class="post-dt">${fmtDT(p.ts)}</div>
+        </div>
+        <div class="rate-badge" style="background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.25);font-size:12px;padding:3px 8px;">পরিশোধ</div>
+      </div>
+      <div class="post-txt" style="color:var(--green);">${p.reportText||''}</div>
+      ${p.ssUrl?`<img class="post-ss" src="${p.ssUrl}" onclick="openLB('${p.ssUrl}')" alt="payment">`:'' }
+    </div>`;
+  }
+
+  // ── Regular Report Post ──────────────────────────────────────
+  const isMe=p.uid===ME.uid;
+  const bc=p.rate===100?'rb-100':p.rate===50?'rb-50':'rb-0';
+  const comms=p.comments?Object.values(p.comments):[];
+  const cHtml=comms.map(c=>{
+    const cIsMe=ME&&c.uid===ME.uid;
+    const cPhoto=cIsMe?(ME.photoUrl||null):(c.photoUrl||null||(PARTNER&&c.uid===PARTNER.uid?(PARTNER.photoUrl||null):null));
+    const cAv=cPhoto
+      ?`<div class="av" style="width:24px;height:24px;overflow:hidden;flex-shrink:0;"><img style="width:100%;height:100%;object-fit:cover;border-radius:50%;" src="${cPhoto}" onerror="this.style.display='none'"></div>`
+      :`<div class="av" style="width:24px;height:24px;flex-shrink:0;">${(c.name||'?')[0].toUpperCase()}</div>`;
+    return `<div class="comm-item">${cAv}<div class="comm-body"><div class="comm-auth">${c.name}</div><div class="comm-txt">${c.text}</div></div></div>`;
+  }).join('');
+  const imgs=[p.ssUrl,p.smImgUrl].filter(Boolean).map(u=>`<img class="post-ss" src="${u}" onclick="openLB('${u}')" alt="ss">`).join('');
+  const postPhoto=isMe?(ME.photoUrl||null):(p.photoUrl||null||(PARTNER&&PARTNER.photoUrl?PARTNER.photoUrl:null));
+  const avHtml=getAvatarHTML(postPhoto,p.name,36);
+  const pid=`${ctx}-${p.key}`;
+  const cmLabel=comms.length>0?`💬 ${comms.length} মন্তব্য`:'💬 মন্তব্য করো';
+  return `<div class="post" id="p-${pid}">
+    <div class="post-h">${avHtml}<div class="post-meta"><div class="post-nm">${p.name}${isMe?' <span style="font-size:10px;color:var(--muted)">(আমি)</span>':''}</div><div class="post-dt">${fmtDT(p.ts)}</div></div><div class="rate-badge ${bc}">${p.rate}%</div></div>
+    <div class="post-txt">${p.reportText||''}</div>
+    ${p.penalty>0?`<div style="padding:3px 13px 8px;font-size:12px;color:var(--bkash);">💗 ৳${p.penalty} Donate করেছে</div>`:''}
+    ${imgs}
+    <div class="post-acts"><button class="act-btn" onclick="togComm('${pid}')">${cmLabel}</button></div>
+    <div class="comms-area" id="cm-${pid}">
+      <div id="cl-${pid}">${cHtml}</div>
+      <div class="comm-inp-row">
+        <input class="comm-inp" id="ci-${pid}" placeholder="মন্তব্য করো..." onkeydown="if(event.key==='Enter')postComm('${p.key}','${pid}')">
+        <button class="send-b" onclick="postComm('${p.key}','${pid}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function togComm(pid){
+  const el=document.getElementById('cm-'+pid);
+  if(!el)return;
+  el.style.display=el.style.display==='block'?'none':'block';
+}
+async function postComm(pk,pid){
+  const inp=document.getElementById('ci-'+pid);
+  if(!inp)return;
+  const t=inp.value.trim();if(!t)return;
+  await db.ref(`feed/${pk}/comments`).push({uid:ME.uid,name:ME.name,photoUrl:ME.photoUrl||'',text:t,ts:Date.now()});
+  inp.value='';
+  toast('মন্তব্য যোগ হয়েছে');
+  const snap=await db.ref(`feed/${pk}/comments`).once('value');
+  const comms=snap.exists()?Object.values(snap.val()):[];
+  const clEl=document.getElementById('cl-'+pid);
+  if(clEl){
+    clEl.innerHTML=comms.map(c=>{
+      const cIsMe=ME&&c.uid===ME.uid;
+      const cPhoto=cIsMe?(ME.photoUrl||null):(c.photoUrl||null||(PARTNER&&c.uid===PARTNER.uid?(PARTNER.photoUrl||null):null));
+      const cAv=cPhoto
+        ?`<div class="av" style="width:24px;height:24px;overflow:hidden;flex-shrink:0;"><img style="width:100%;height:100%;object-fit:cover;border-radius:50%;" src="${cPhoto}" onerror="this.style.display='none'"></div>`
+        :`<div class="av" style="width:24px;height:24px;flex-shrink:0;">${(c.name||'?')[0].toUpperCase()}</div>`;
+      return `<div class="comm-item">${cAv}<div class="comm-body"><div class="comm-auth">${c.name}</div><div class="comm-txt">${c.text}</div></div></div>`;
+    }).join('');
+    const actBtn=document.querySelector(`#p-${pid} .act-btn`);
+    if(actBtn)actBtn.textContent=`💬 ${comms.length} মন্তব্য`;
+  }
+}
+
+// ── Chat ──────────────────────────────────────────────────────
+function getRoomId(){return ME&&PARTNER?[ME.uid,PARTNER.uid].sort().join('_'):null;}
+function scrollChatToBottom(){
+  const el=document.getElementById('chatMsgs');
+  if(!el)return;
+  el.scrollTop=el.scrollHeight;
+  setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
+  setTimeout(()=>{el.scrollTop=el.scrollHeight;},200);
+}
+function buildMsgHTML(m,isMe){
+  const name=(m.name||'?')[0].toUpperCase();
+  const msgPhoto=isMe?(ME&&ME.photoUrl||null):(m.photoUrl||null||(PARTNER&&PARTNER.photoUrl?PARTNER.photoUrl:null));
+  const msgAvHtml=msgPhoto
+    ?`<div class="msg-av" style="overflow:hidden;"><img style="width:100%;height:100%;object-fit:cover;border-radius:50%;" src="${msgPhoto}" onerror="this.style.display='none'"></div>`
+    :`<div class="msg-av">${name}</div>`;
+  return `<div class="msg-wrap${isMe?' me':''}">
+    ${msgAvHtml}
+    <div class="msg-content">
+      ${!isMe?`<div class="msg-name">${m.name||''}</div>`:''}
+      <div class="msg-bbl">
+        ${m.text?`<span>${m.text}</span>`:''}
+        ${m.imgUrl?`<img class="msg-img" src="${m.imgUrl}" onclick="openLB('${m.imgUrl}')">`:'' }
+      </div>
+      <div class="msg-time">${fmtT(m.ts)}</div>
+    </div>
+  </div>`;
+}
+let _lastSeenMsgTs=parseInt(localStorage.getItem('lastSeenMsgTs')||'0');
+let _chatReady=false;
+function updateChatBadge(count){
+  const badge=document.getElementById('chatBadge');
+  if(!badge)return;
+  if(count>0){badge.textContent=count>99?'99+':count;badge.style.display='flex';}
+  else{badge.style.display='none';}
+}
+function initChat(){
+  if(!ME||!PARTNER)return;
+  if(chatOff){chatOff();chatOff=null;}
+  _chatReady=false;
+  const room=getRoomId();
+  const el=document.getElementById('chatMsgs');
+  let unseenCount=0;
+  chatOff=db.ref(`chats/${room}`).orderByChild('ts').limitToLast(80).on('value',snap=>{
+    el.innerHTML='';unseenCount=0;
+    if(snap.exists()){
+      const frag=document.createDocumentFragment();
+      snap.forEach(ch=>{
+        const m=ch.val(),isMe=m.uid===ME.uid;
+        const div=document.createElement('div');
+        div.innerHTML=buildMsgHTML(m,isMe);
+        frag.appendChild(div.firstElementChild);
+        if(!isMe&&m.ts>_lastSeenMsgTs)unseenCount++;
+      });
+      el.appendChild(frag);
+    }
+    _chatReady=true;
+    const chatPg=document.getElementById('pgChat');
+    if(chatPg&&chatPg.classList.contains('active')){
+      _lastSeenMsgTs=Date.now();
+      localStorage.setItem('lastSeenMsgTs',_lastSeenMsgTs);
+      updateChatBadge(0);scrollChatToBottom();
+    } else {updateChatBadge(unseenCount);}
+  });
+}
+function openChatTab(){
+  _lastSeenMsgTs=Date.now();
+  localStorage.setItem('lastSeenMsgTs',_lastSeenMsgTs);
+  updateChatBadge(0);
+  setTimeout(()=>scrollChatToBottom(),80);
+}
+async function sendMsg(){
+  const inp=document.getElementById('chatInp'),t=inp.value.trim();
+  if(!t||!PARTNER)return;
+  inp.value='';
+  try{await db.ref(`chats/${getRoomId()}`).push({uid:ME.uid,name:ME.name,photoUrl:ME.photoUrl||'',text:t,ts:firebase.database.ServerValue.TIMESTAMP});}
+  catch(e){toast('মেসেজ পাঠানো যায়নি','err');inp.value=t;}
+}
+async function sendImgMsg(input){
+  const file=input.files[0];if(!file||!PARTNER)return;
+  toast('ছবি পাঠানো হচ্ছে...','warn');
+  try{
+    const url=await uploadImg(file);
+    await db.ref(`chats/${getRoomId()}`).push({uid:ME.uid,name:ME.name,photoUrl:ME.photoUrl||'',imgUrl:url,text:'',ts:firebase.database.ServerValue.TIMESTAMP});
+    toast('ছবি পাঠানো হয়েছে');
+  }catch(e){toast('Upload ব্যর্থ: '+e.message,'err');}
+  input.value='';
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.page,.pgchat-wrap').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const pg=document.getElementById('pg'+t[0].toUpperCase()+t.slice(1));
+  if(pg){pg.classList.add('active');if(pg.classList.contains('page'))pg.scrollTop=0;}
+  const nb=document.getElementById('ni-'+t);if(nb)nb.classList.add('active');
+  if(t==='feed')initFeed();
+  if(t==='report'){checkTodayReport();loadReportHistory();loadPendingPenalties();}
+  if(t==='overview')initOverview();
+  if(t==='chat'){if(PARTNER){if(!chatOff){initChat();}openChatTab();}else{document.getElementById('noPtnrC').style.display='block';}}
+}
+function gotoReport(){document.getElementById('rpBanner').classList.remove('show');switchTab('report');}
+
+// ── Overview ──────────────────────────────────────────────────
+let _ovPeriod=7;
+
+function ovSetPeriod(days){
+  _ovPeriod=days;
+  document.querySelectorAll('.ov-period-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('ovp-'+days);
+  if(btn)btn.classList.add('active');
+  renderOverview();
+}
+
+async function initOverview(){
+  const noPtnr=document.getElementById('ovNoPtnr');
+  const content=document.getElementById('ovContent');
+  if(!PARTNER){
+    if(noPtnr)noPtnr.style.display='block';
+    if(content)content.style.display='none';
+    return;
+  }
+  if(noPtnr)noPtnr.style.display='none';
+  if(content)content.style.display='block';
+  renderOverview();
+}
+
+async function renderOverview(){
+  if(!ME||!PARTNER)return;
+
+  // avatar render
+  const myAvEl=document.getElementById('ovMyAv');
+  const ptAvEl=document.getElementById('ovPtnrAv');
+  if(myAvEl){
+    if(ME.photoUrl)myAvEl.innerHTML=`<img src="${ME.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    else myAvEl.textContent=(ME.name||'?')[0].toUpperCase();
+  }
+  if(ptAvEl){
+    if(PARTNER.photoUrl)ptAvEl.innerHTML=`<img src="${PARTNER.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    else ptAvEl.textContent=(PARTNER.name||'?')[0].toUpperCase();
+  }
+  document.getElementById('ovMyName').textContent=ME.name;
+  document.getElementById('ovPtnrName').textContent=PARTNER.name;
+
+  // date range
+  const now=new Date();
+  const cutoff=_ovPeriod>0?(new Date(now-_ovPeriod*86400000)):null;
+
+  // fetch all reports — partner-এরটা feed থেকে নাও (rules-safe)
+  const [mySnap,myPenSnap,ptPenSnap,feedSnap]=await Promise.all([
+    db.ref(`reports/${ME.uid}`).once('value'),
+    db.ref(`penalties/${ME.uid}`).once('value'),
+    db.ref(`penalties/${PARTNER.uid}`).once('value'),
+    db.ref('feed').orderByChild('uid').equalTo(PARTNER.uid).once('value'),
+  ]);
+
+  // build maps: dateKey → report
+  const myReps={},ptReps={};
+  if(mySnap.exists())mySnap.forEach(c=>{const v=c.val();if(v&&v.submitted)myReps[c.key]=v;});
+  // partner-এর report feed থেকে বানাই
+  if(feedSnap.exists())feedSnap.forEach(c=>{
+    const v=c.val();
+    if(v&&v.submitted&&v.type==='report'&&v.date)ptReps[v.date]=v;
+  });
+
+  // penalty maps
+  const myPens={},ptPens={};
+  if(myPenSnap.exists())myPenSnap.forEach(c=>{myPens[c.key]=c.val();});
+  if(ptPenSnap.exists())ptPenSnap.forEach(c=>{ptPens[c.key]=c.val();});
+
+  // collect all dates (registration → আজ পর্যন্ত)
+  const regDate=ME.registeredAt||Object.keys(myReps).sort()[0]||todayKey();
+  const todayDateKey=todayKey();
+  const winKey=reportWindowKey();
+  const allDates=getDatesSinceRegistration(regDate).filter(d=>{
+    // আজকের date/window key — কেউ রিপোর্ট দিলে include করো, নইলে বাদ
+    if(d===todayDateKey||d===winKey){
+      return !!(myReps[d]||ptReps[d]);
+    }
+    return true;
+  });
+
+  // filter by period
+  const filteredDates=allDates.filter(dk=>{
+    if(!cutoff)return true;
+    const [y,m,d]=dk.split('-').map(Number);
+    return new Date(y,m-1,d)>=cutoff;
+  });
+
+  if(!filteredDates.length){
+    document.getElementById('ovMyRate').textContent='—';
+    document.getElementById('ovPtnrRate').textContent='—';
+    const pd=document.getElementById('ovPenDetail');
+    if(pd)pd.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px;">এই সময়ে কোনো ডেটা নেই</div>';
+    return;
+  }
+
+  // compute stats
+  let myTotalRate=0,ptTotalRate=0,myCount=0,ptCount=0;
+  let myMissed=0,ptMissed=0;
+  let myPenTotal=0,ptPenTotal=0;
+
+  // compute stats — oldest → newest order
+  for(const dk of filteredDates){
+    const mr=myReps[dk],pr=ptReps[dk];
+    // my stats
+    if(mr){myTotalRate+=mr.rate||0;myCount++;}
+    else{myMissed++;if(myPens[dk]&&!myPens[dk].paid)myPenTotal+=(myPens[dk].amount||20);}
+    // partner stats
+    if(pr){ptTotalRate+=pr.rate||0;ptCount++;}
+    else{ptMissed++;if(ptPens[dk]&&!ptPens[dk].paid)ptPenTotal+=(ptPens[dk].amount||20);}
+  }
+  // Streak = মোট submitted রিপোর্ট সংখ্যা (miss বাদে)
+  const myCurrentStreak=myCount;
+  const ptCurrentStreak=ptCount;
+  myMaxStreak=myCount;
+  ptMaxStreak=ptCount;
+
+  // penalty মোট হিসাব (সব paid + unpaid)
+  let myPenPaid=0, myPenUnpaid=0, ptPenPaidAmt=0, ptPenUnpaid=0;
+  Object.values(myPens).forEach(p=>{
+    if(p.paid) myPenPaid+=(p.amount||20);
+    else myPenUnpaid+=(p.amount||20);
+  });
+  Object.values(ptPens).forEach(p=>{
+    if(p.paid) ptPenPaidAmt+=(p.amount||20);
+    else ptPenUnpaid+=(p.amount||20);
+  });
+  const myPenGrand=myPenPaid+myPenUnpaid;
+  const ptPenGrand=ptPenPaidAmt+ptPenUnpaid;
+
+  // গড় = submitted দিন / মোট দিন × 100 (দশমিক সহ)
+  const totalDays=filteredDates.length||1;
+  const fmtAvg=v=>isNaN(v)?'0.00':(Math.min(100,Math.max(0,v))).toFixed(2);
+  const myAvgVal=myCount/totalDays*100;
+  const ptAvgVal=ptCount/totalDays*100;
+  const myAvgStr=fmtAvg(myAvgVal)+'%';
+  const ptAvgStr=fmtAvg(ptAvgVal)+'%';
+  // snapRate এখনো breakdown/list-এর rate snap-এর জন্য রাখছি
+  const snapRate=v=>(isNaN(v)||v===null||v===undefined)?0:Math.min(100,Math.max(0,Math.round(v/10)*10));
+
+  // update stats chips
+  document.getElementById('ovMyRate').textContent=myAvgStr;
+  document.getElementById('ovMyRate').style.color=myAvgVal>=80?'var(--green)':myAvgVal>=50?'var(--gold)':'var(--red)';
+  document.getElementById('ovPtnrRate').textContent=ptAvgStr;
+  document.getElementById('ovPtnrRate').style.color=ptAvgVal>=80?'var(--green)':ptAvgVal>=50?'var(--gold)':'var(--red)';
+  document.getElementById('ovMyStreak').textContent=myCurrentStreak||0;
+  document.getElementById('ovPtnrStreak').textContent=ptCurrentStreak||0;
+  document.getElementById('ovMyPenTotal').textContent='৳'+(myPenGrand||0);
+  document.getElementById('ovPtnrPenTotal').textContent='৳'+(ptPenGrand||0);
+
+  // winner emoji
+  const winEl=document.getElementById('ovWinner');
+  if(myAvgVal>ptAvgVal)winEl.textContent='←';
+  else if(ptAvgVal>myAvgVal)winEl.textContent='→';
+  else winEl.textContent='=';
+
+  // ── Category Breakdown ──────────────────────────────────────
+  const bkEl=document.getElementById('ovBreakdown');
+  const total=filteredDates.length;
+  const cats=[
+    {label:`<span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>রিপোর্ট জমা`,myVal:myCount,ptVal:ptCount,total},
+    {label:`<span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>রিপোর্ট মিস`,myVal:myMissed,ptVal:ptMissed,total},
+    {label:`<span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 01-2-2V5h4"/><path d="M18 9h2a2 2 0 002-2V5h-4"/><path d="M6 5h12v6a6 6 0 01-12 0V5z"/><path d="M12 15v4"/><path d="M8 19h8"/></svg></span>সর্বোচ্চ Streak`,myVal:myMaxStreak,ptVal:ptMaxStreak,total:null},
+    {label:`<span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>মোট জরিমানা`,myVal:'৳'+myPenGrand,ptVal:'৳'+ptPenGrand,total:null},
+    {label:`<span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>পরিশোধ করেছে`,myVal:'৳'+myPenPaid,ptVal:'৳'+ptPenPaidAmt,total:null},
+    {label:`<span style="display:inline-flex;align-items:center;margin-right:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>এখনো বাকি`,myVal:'৳'+myPenUnpaid,ptVal:'৳'+ptPenUnpaid,total:null},
+  ];
+  bkEl.innerHTML=cats.map(c=>{
+    const myDisp=c.total!==null?`${c.myVal}/${c.total}`:c.myVal;
+    const ptDisp=c.total!==null?`${c.ptVal}/${c.total}`:c.ptVal;
+    return `<div class="ov-cat-row">
+      <span>${c.label}</span>
+      <div style="display:flex;gap:12px;">
+        <span style="font-size:12px;font-weight:700;color:var(--orange);">${myDisp}</span>
+        <span style="font-size:11px;color:var(--muted);">vs</span>
+        <span style="font-size:12px;font-weight:700;color:#c084fc;">${ptDisp}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Report Detail List ──────────────────────────────────────
+  const recent=[...filteredDates].reverse();
+  const listEl=document.getElementById('ovReportList');
+  if(!recent.length){listEl.innerHTML='<div class="empty"><div class="empty-ic ic"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>এই সময়ে কোনো ডেটা নেই</div>';return;}
+  listEl.innerHTML=recent.map(dk=>{
+    const [y,m,d]=dk.split('-');
+    const mr=myReps[dk],pr=ptReps[dk];
+    const myHas=!!mr,ptHas=!!pr;
+    const myR=myHas?snapRate(mr.rate):null;
+    const ptR=ptHas?snapRate(pr.rate):null;
+    const myColor=myR===100?'var(--green)':myR===50?'var(--gold)':myR===0?'var(--red)':'var(--muted)';
+    const ptColor=ptR===100?'var(--green)':ptR===50?'var(--gold)':ptR===0?'var(--red)':'var(--muted)';
+    const myPen=myPens[dk];
+    const ptPen=ptPens[dk];
+    return `<div class="ov-detail-card">
+      <div class="ov-detail-head" onclick="ovToggleDetail('ovd-${dk}')">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">${d}/${m}/${y}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+            <span style="color:${myColor};">${ME.name}: ${myHas?(myR+'%'):'মিস'}</span>
+            <span style="color:var(--border);margin:0 5px;">|</span>
+            <span style="color:${ptColor};">${PARTNER.name}: ${ptHas?(ptR+'%'):'মিস'}</span>
+          </div>
+        </div>
+        <span style="color:var(--muted);font-size:12px;">▼</span>
+      </div>
+      <div class="ov-detail-body" id="ovd-${dk}">
+        ${mr?`<div style="margin-bottom:8px;padding:8px;background:rgba(255,69,0,.05);border-radius:8px;border:1px solid rgba(255,69,0,.1);">
+          <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:4px;">👤 ${ME.name}</div>
+          <pre style="font-family:monospace;font-size:11px;color:#00ff88;white-space:pre-wrap;line-height:1.7;">${mr.reportText||''}</pre>
+          ${myPen?`<div style="font-size:11px;margin-top:4px;color:${myPen.paid?'var(--green)':'var(--red)'};">${myPen.paid?'পরিশোধিত ✓':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>জরিমানা বাকি: ৳'+(myPen.amount||20)}</div>`:''}
+        </div>`:
+        `<div style="padding:8px;background:rgba(255,61,61,.05);border-radius:8px;border:1px solid rgba(255,61,61,.1);margin-bottom:8px;">
+          <span style="color:var(--muted);font-size:12px;">😔 ${ME.name} রিপোর্ট দেননি</span>
+          ${myPen?`<div style="font-size:11px;margin-top:4px;color:${myPen.paid?'var(--green)':'var(--red)'};">${myPen.paid?'পরিশোধিত ✓':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>জরিমানা বাকি: ৳'+(myPen.amount||20)}</div>`:''}
+        </div>`}
+        ${pr?`<div style="padding:8px;background:rgba(124,58,237,.05);border-radius:8px;border:1px solid rgba(124,58,237,.1);">
+          <div style="font-size:12px;font-weight:700;color:#c084fc;margin-bottom:4px;">👤 ${PARTNER.name}</div>
+          <pre style="font-family:monospace;font-size:11px;color:#00ff88;white-space:pre-wrap;line-height:1.7;">${pr.reportText||''}</pre>
+          ${ptPen?`<div style="font-size:11px;margin-top:4px;color:${ptPen.paid?'var(--green)':'var(--red)'};">${ptPen.paid?'পরিশোধিত ✓':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>জরিমানা বাকি: ৳'+(ptPen.amount||20)}</div>`:''}
+        </div>`:
+        `<div style="padding:8px;background:rgba(124,58,237,.05);border-radius:8px;border:1px solid rgba(124,58,237,.1);">
+          <span style="color:var(--muted);font-size:12px;"><span style="display:inline-flex;align-items:center;margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg></span>${PARTNER.name} রিপোর্ট দেননি</span>
+          ${ptPen?`<div style="font-size:11px;margin-top:4px;color:${ptPen.paid?'var(--green)':'var(--red)'};">${ptPen.paid?'পরিশোধিত ✓':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>জরিমানা বাকি: ৳'+(ptPen.amount||20)}</div>`:''}
+        </div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ovToggleDetail(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('open');
+  const head=el.previousElementSibling;
+  if(head){const arr=head.querySelector('span:last-child');if(arr)arr.textContent=el.classList.contains('open')?'▲':'▼';}
+}
+
+// ── Lock ──────────────────────────────────────────────────────
+function startClock(){
+  if(clockInt)clearInterval(clockInt);
+  const tick=()=>{
+    if(!ME)return;
+    const now=new Date(),h=now.getHours(),m=now.getMinutes();
+    const lock=document.getElementById('lockOverlay');
+    document.getElementById('lockClk').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    if(h>=0&&h<5){
+      if(!lock.dataset.bypass)lock.classList.add('show');
+      const wakeSection=document.getElementById('lockWakeSection');
+      const lockTimerDisp=document.getElementById('lockTimerDisp');
+      if(RS._slpStartTs){
+        if(wakeSection)wakeSection.style.display='block';
+        if(lockTimerDisp)lockTimerDisp.textContent=trkHHMMSS(Date.now()-RS._slpStartTs);
+      } else {if(wakeSection)wakeSection.style.display='none';}
+    } else {delete lock.dataset.bypass;lock.classList.remove('show');}
+  };
+  tick();clockInt=setInterval(tick,1000);
+}
+function bypassLock(){
+  const l=document.getElementById('lockOverlay');
+  l.dataset.bypass='1';l.classList.remove('show');
+  toast('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>জরুরি bypass — রিপোর্টে জরিমানা যোগ হবে','warn');
+  setTimeout(()=>{delete l.dataset.bypass;const h=new Date().getHours();if(h>=0&&h<5)l.classList.add('show');},3600000);
+}
+
+// ── Copy Guard ────────────────────────────────────────────────
+function initCopyGuard(){
+  const overlay=document.getElementById('wakeOverlay');
+  if(!overlay)return;
+  overlay.addEventListener('contextmenu',e=>{if(e.target.id!=='typeInp')e.preventDefault();},true);
+  overlay.addEventListener('selectstart',e=>{if(e.target.id!=='typeInp')e.preventDefault();},true);
+  overlay.addEventListener('copy',e=>{if(e.target.id!=='typeInp')e.preventDefault();},true);
+  overlay.addEventListener('cut',e=>{if(e.target.id!=='typeInp')e.preventDefault();},true);
+}
+function handlePaste(e){e.target.dataset.pasted='1';setTimeout(chkType,10);}
+
+// ── Social Media Guard ────────────────────────────────────────
+function initSocialGuard(){
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href]');if(!a)return;
+    try{const url=new URL(a.href);if(SOCIAL_DOMAINS.some(d=>url.hostname.includes(d))&&!socialAllowed){e.preventDefault();showSocialWarn();}}catch(err){}
+  },true);
+}
+function showSocialWarn(){document.getElementById('socialWarn').classList.add('show');document.getElementById('swCountdown').style.display='none';clearInterval(socialTimer);}
+function dismissSocialWarn(){document.getElementById('socialWarn').classList.remove('show');socialAllowed=false;clearInterval(socialTimer);}
+function allowSocial5min(){
+  document.getElementById('swCountdown').style.display='block';
+  socialAllowed=true;let secs=300;
+  const tick=()=>{
+    const m=Math.floor(secs/60),s=secs%60;
+    document.getElementById('swTimer').textContent=`${m}:${String(s).padStart(2,'0')}`;
+    if(secs<=0){clearInterval(socialTimer);socialAllowed=false;document.getElementById('socialWarn').classList.add('show');document.getElementById('swCountdown').style.display='none';}
+    secs--;
+  };
+  tick();socialTimer=setInterval(tick,1000);
+  document.getElementById('socialWarn').classList.remove('show');
+  toast('⏱️ ৫ মিনিট সময় দেওয়া হলো','warn');
+}
+
+// ── Wake prompt ───────────────────────────────────────────────
+function checkWakePrompt(){
+  if(!ME)return;
+  if(localStorage.getItem('wake_'+todayKey()))return;
+  const h=new Date().getHours();
+  if(h>=5&&h<10)showWakeOverlay();
+}
+function showWakeOverlay(){
+  qIdx=Math.floor(Math.random()*QUOTES.length);
+  loadQuote();
+  document.getElementById('wakeOverlay').classList.add('show');
+}
+function loadQuote(){
+  const q=QUOTES[qIdx];
+  document.getElementById('qNum').textContent=qIdx+1;
+  document.getElementById('qTxt').textContent=`"${q.q}" — ${q.a}`;
+  const target=q.q;
+  document.getElementById('typeTgt').textContent=target;
+  const ti=document.getElementById('typeInp');
+  ti.value='';delete ti.dataset.pasted;
+  document.getElementById('typeProg').textContent='';
+  const wb=document.getElementById('wakeBtn');
+  wb.disabled=true;wb.style.opacity='0.45';wb.style.transform='scale(1)';
+}
+function chkType(){
+  const tgt=document.getElementById('typeTgt').textContent.trim().replace(/\s+/g,' ');
+  const inp=document.getElementById('typeInp');
+  const typed=inp.value.trim().replace(/\s+/g,' ');
+  const total=tgt.length||1;
+  const pct=Math.min(100,Math.round((typed.length/total)*100));
+  document.getElementById('typeProg').textContent=`${typed.length} / ${tgt.length} অক্ষর (${pct}%)`;
+  const match=typed.toLowerCase()===tgt.toLowerCase();
+  const wasPasted=inp.dataset.pasted==='1';
+  const btn=document.getElementById('wakeBtn');
+  const allow=match&&!wasPasted;
+  btn.disabled=!allow;btn.style.opacity=allow?'1':'0.45';btn.style.transform=allow?'scale(1.02)':'scale(1)';
+  if(wasPasted&&match){document.getElementById('typeProg').textContent='Copy-paste করলে হবে না! নিজে টাইপ করো।';btn.style.opacity='0.4';}
+}
+function confirmWake(){
+  const h=new Date().getHours();
+  localStorage.setItem('wake_'+todayKey(),'1');
+  document.getElementById('wakeOverlay').classList.remove('show');
+  const timerBlock=document.getElementById('slpTimerBlock');
+  if(timerBlock&&timerBlock.style.display!=='none'){trkEndSleep();return;}
+  if(h>=7){
+    RS.wake=false;
+    document.getElementById('tWk').className='tgl';
+    updateRateUI();
+    toast('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>৭টার পরে উঠেছ!','warn');
+  } else {
+    RS.wake=true;
+    document.getElementById('tWk').className='tgl on';
+    updateRateUI();
+    toast('সকালের confirm হয়েছে! 🌅');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TRACKER MODULE
+// ═══════════════════════════════════════════════════════════════
+let slpInterval=null;
+let smImgFile=null;
+let _editCb=null;
+
+function initTracker(){
+  const today=trkFmtDate();
+  const winKey=reportWindowKey();
+  const now=Date.now();
+  const cutoff24h=now-(24*60*60*1000);
+
+  // sleep_active আগে check করো, তারপর sleep_logs — race condition এড়াতে
+  db.ref(`tracker/${ME.uid}/sleep_active`).once('value').then(s=>{
+    if(s.exists()){
+      const d=s.val();
+      RS._slpStartTs=d.ts||Date.now();
+      RS._slpStartTime=fmt12h(d.time||trkFmtTime());
+      RS._slpEndTime=null;RS._slpDuration=null;
+      if(isBeforeMidnight(d.time||'')){RS.sleep=true;document.getElementById('tSl').className='tgl on';updateRateUI();}
+      activateSlpUI(d);
+      // sleep_active আছে মানে ঘুম এখনো চলছে — sleep_logs load করার দরকার নেই
+      return;
+    }
+    // sleep_active নেই — sleep_logs থেকে আজকের record খোঁজো
+    db.ref(`tracker/${ME.uid}/sleep_logs`).orderByChild('savedAt').limitToLast(20).once('value').then(s2=>{
+      if(!s2.exists())return;
+      const items=[];s2.forEach(cc=>items.push(cc.val()));
+      items.sort((a,b)=>b.savedAt-a.savedAt);
+      // Expired records পরিষ্কার করো
+      items.forEach(r=>{if(r.expireAt&&r.expireAt<now){db.ref(`tracker/${ME.uid}/sleep_logs/${r.id}`).remove().catch(()=>{});}});
+      // Priority 1: reportWindowKey match (নতুন format)
+      // Priority 2: last 24 ঘন্টার মধ্যে savedAt (পুরনো format backward compat)
+      const todaySleep=
+        items.find(r=>r.reportWindowKey===winKey&&(!r.expireAt||r.expireAt>now))
+        ||items.find(r=>(!r.reportWindowKey)&&r.savedAt&&r.savedAt>=cutoff24h&&(!r.expireAt||r.expireAt>now));
+      if(todaySleep){
+        showSlpSummaryInline(todaySleep,todaySleep.edited===true);
+        if(isBeforeMidnight(todaySleep.startTime)){RS.sleep=true;document.getElementById('tSl').className='tgl on';}
+        const woke=isBeforeSevenAM(todaySleep.endTime);
+        if(woke){RS.wake=true;document.getElementById('tWk').className='tgl on';}
+        else{RS.wake=false;document.getElementById('tWk').className='tgl';}
+        updateRateUI();
+      }
+    });
+  });
+  db.ref(`tracker/${ME.uid}/pushup_logs`).once('value').then(s=>{
+    if(!s.exists())return;
+    let todayTotal=0,allDays=new Set();
+    s.forEach(cc=>{const v=cc.val();allDays.add(v.date);if(v.date===today)todayTotal+=v.count;});
+    if(todayTotal>0){
+      RS._puCount=todayTotal;RS._puDayNum=allDays.size;
+      const pc=document.getElementById('puSavedCard');
+      const pb=document.getElementById('puSavedBody');
+      if(pc&&pb){pc.style.display='block';pb.innerHTML=`<div class="sleep-display"><div class="sleep-row"><span class="sleep-lbl">আজকের মোট</span><span class="sleep-val" style="color:var(--orange);font-weight:700;">${todayTotal} reps</span></div><div class="sleep-row" style="border:none;"><span class="sleep-lbl">চ্যালেঞ্জ দিন</span><span class="sleep-val">Day ${allDays.size}</span></div></div>`;}
+      buildPreview();
+    }
+  });
+}
+
+// ── Utils ──────────────────────────────────────────────────────
+function trkFmtDate(d=new Date()){return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function trkFmtTime(d=new Date()){return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function fmt12h(time24){
+  if(!time24)return time24;
+  const[hStr,mStr]=time24.split(':');
+  let h=parseInt(hStr),m=mStr;
+  const ampm=h>=12?'PM':'AM';
+  h=h%12||12;
+  return `${String(h).padStart(2,'0')}:${m} ${ampm}`;
+}
+function isBeforeMidnight(time24){
+  if(!time24)return false;
+  const h=parseInt(time24.split(':')[0]);
+  return h>=20 && h<=23;
+}
+function isBeforeSevenAM(time24){
+  if(!time24)return false;
+  const h=parseInt(time24.split(':')[0]);
+  return h>=0&&h<7;
+}
+function trkDur(ms){const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?`${h} ঘণ্টা ${m} মিনিট`:`${m} মিনিট`;}
+function trkDurHours(ms){const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?`${h} Hours ${m} Min`:`${m} Min`;}
+function trkHHMMSS(ms){const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000),s=Math.floor((ms%60000)/1000);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+function trkUID(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+
+// ── Modal ──────────────────────────────────────────────────────
+function openModal(title,body,cb){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('editModal').classList.add('show');
+  _editCb=cb;
+}
+function closeModal(){document.getElementById('editModal').classList.remove('show');_editCb=null;}
+function saveEdit(){if(_editCb)_editCb();}
+
+// ── Sleep Tracker ──────────────────────────────────────────────
+async function trkStartSleep(){
+  if(!ME){toast('লগইন করো','err');return;}
+  const now=new Date();
+  const start={ts:Date.now(),date:trkFmtDate(now),time:trkFmtTime(now)};
+  RS._slpStartTime=fmt12h(start.time);
+  RS._slpStartTs=start.ts;
+  RS._slpEndTime=null;RS._slpDuration=null;
+  if(isBeforeMidnight(start.time)){
+    RS.sleep=true;RS.wake=false;
+    document.getElementById('tSl').className='tgl on';
+    document.getElementById('tWk').className='tgl';
+  }
+  updateRateUI();
+  activateSlpUI(start);
+  toast('ঘুমাতে যাচ্ছি — '+fmt12h(start.time));
+  try{await db.ref(`tracker/${ME.uid}/sleep_active`).set(start);}
+  catch(e){toast('Firebase save error: '+e.message,'err');}
+}
+function activateSlpUI(start){
+  const startBtn=document.getElementById('slpStartBtn');
+  const wakeBtn=document.getElementById('slpWakeBtn');
+  const timerBlock=document.getElementById('slpTimerBlock');
+  const timerDisp=document.getElementById('slpTimerDisp');
+  if(startBtn)startBtn.style.display='none';
+  if(wakeBtn)wakeBtn.style.display='block';
+  if(timerBlock)timerBlock.style.display='block';
+  clearInterval(slpInterval);
+  if(timerDisp)timerDisp.textContent=trkHHMMSS(Date.now()-start.ts);
+  slpInterval=setInterval(()=>{
+    const el=document.getElementById('slpTimerDisp');
+    if(el)el.textContent=trkHHMMSS(Date.now()-start.ts);
+  },1000);
+}
+async function trkEndSleep(){
+  if(!ME){toast('লগইন করো','err');return;}
+  clearInterval(slpInterval);
+  const endNow=new Date();
+  const endTs=Date.now();
+  const endTime24=trkFmtTime(endNow);
+  const startTs=RS._slpStartTs||endTs;
+  const durationMs=endTs-startTs;
+  RS._slpEndTime=fmt12h(endTime24);
+  RS._slpDuration=trkDurHours(durationMs);
+  const woke=isBeforeSevenAM(endTime24);
+  if(woke){
+    RS.wake=true;
+    document.getElementById('tWk').className='tgl on';
+  } else {
+    RS.wake=false;
+    document.getElementById('tWk').className='tgl';
+  }
+  updateRateUI();
+  resetSlpUI();
+  toast('উঠে পড়েছ — '+fmt12h(endTime24));
+  try{
+    const snap=await db.ref(`tracker/${ME.uid}/sleep_active`).once('value');
+    const start=snap.val();
+    const winKey=reportWindowKey();
+    const record={
+      id:trkUID(),type:'sleep',
+      startTs:startTs,
+      startDate:start?start.date:trkFmtDate(new Date(startTs)),
+      startTime:start?start.time:trkFmtTime(new Date(startTs)),
+      endTs,endDate:trkFmtDate(endNow),endTime:endTime24,
+      durationMs,duration:trkDur(durationMs),savedAt:endTs,
+      reportWindowKey:winKey,
+      expireAt:endTs+(24*60*60*1000)
+    };
+    await db.ref(`tracker/${ME.uid}/sleep_logs/${record.id}`).set(record);
+    await db.ref(`tracker/${ME.uid}/sleep_active`).remove();
+    showSlpSummaryInline(record);
+  }catch(e){toast('Firebase save error: '+e.message,'err');}
+}
+function resetSlpUI(){
+  document.getElementById('slpStartBtn').style.display='block';
+  document.getElementById('slpWakeBtn').style.display='none';
+  document.getElementById('slpTimerBlock').style.display='none';
+}
+function showSlpSummaryInline(r,edited=false){
+  // startTime/endTime হয়তো "HH:MM" (24h) অথবা "HH:MM AM/PM" (12h) format-এ থাকতে পারে
+  const is12h=t=>t&&(t.includes('AM')||t.includes('PM'));
+  const startFmt=is12h(r.startTime)?r.startTime:fmt12h(r.startTime);
+  const endFmt=is12h(r.endTime)?r.endTime:fmt12h(r.endTime);
+  // durationMs না থাকলে startTs/endTs থেকে calculate করো, তাও না পারলে duration string ব্যবহার করো
+  let totalStr='';
+  if(r.durationMs>0){totalStr=trkDurHours(r.durationMs);}
+  else if(r.endTs&&r.startTs){totalStr=trkDurHours(r.endTs-r.startTs);}
+  else if(r.duration){totalStr=r.duration;}
+  const suffix=edited?' [Edited]':'';
+  RS._slpStartTime=startFmt+suffix;
+  RS._slpEndTime=endFmt+suffix;
+  RS._slpDuration=totalStr+suffix;
+  const el=document.getElementById('slpSummaryInline');
+  if(el){
+    el.style.display='block';
+    el.innerHTML=`<div class="sleep-display" style="margin-bottom:10px;">
+    <div class="sleep-row"><span class="sleep-lbl">Sleeping at</span><span class="sleep-val" style="color:#c084fc;">${startFmt}</span></div>
+    <div class="sleep-row"><span class="sleep-lbl">Wake Up</span><span class="sleep-val" style="color:var(--green);">${endFmt}</span></div>
+    <div class="sleep-row" style="border:none;"><span class="sleep-lbl">Total Sleep</span><span class="sleep-val" style="color:var(--gold);font-weight:700;">${totalStr}</span></div>
+  </div>`;
+  }
+  buildPreview();
+}
+function editSlpRecord(id){
+  db.ref(`tracker/${ME.uid}/sleep_logs/${id}`).once('value').then(snap=>{
+    const r=snap.val();if(!r)return;
+    openModal('🌙 ঘুমের রেকর্ড এডিট',`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">ঘুমানোর সময় (HH:MM)</div>
+      <input class="inp" id="eSlST" value="${r.startTime}" placeholder="00:00">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">ঘুমানোর তারিখ (DD/MM/YYYY)</div>
+      <input class="inp" id="eSlSD" value="${r.startDate}">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">ওঠার সময় (HH:MM)</div>
+      <input class="inp" id="eSlET" value="${r.endTime}" placeholder="00:00">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">ওঠার তারিখ (DD/MM/YYYY)</div>
+      <input class="inp" id="eSlED" value="${r.endDate}">
+    `,async()=>{
+      const st=document.getElementById('eSlST').value.trim();
+      const sd=document.getElementById('eSlSD').value.trim();
+      const et=document.getElementById('eSlET').value.trim();
+      const ed=document.getElementById('eSlED').value.trim();
+      if(!st||!et){toast('সময় দাও','err');return;}
+      const parseT=(ds,ts)=>{const[d,m,y]=ds.split('/');const[hh,mm]=ts.split(':');return new Date(+y,+m-1,+d,+hh,+mm).getTime();};
+      const startTs=parseT(sd,st),endTs=parseT(ed,et);
+      const durationMs=Math.max(0,endTs-startTs);
+      const winKey=reportWindowKey();
+      await db.ref(`tracker/${ME.uid}/sleep_logs/${id}`).update({startTime:st,startDate:sd,endTime:et,endDate:ed,durationMs,duration:trkDur(durationMs),edited:true,reportWindowKey:winKey,expireAt:endTs+(24*60*60*1000)});
+      closeModal();
+      const startFmt12=fmt12h(st)+' [Edited]';
+      const endFmt12=fmt12h(et)+' [Edited]';
+      const durStr=trkDurHours(durationMs)+' [Edited]';
+      RS._slpStartTime=startFmt12;RS._slpEndTime=endFmt12;RS._slpDuration=durStr;RS._slpEdited=true;
+      showSlpSummaryInline({startTime:st,endTime:et,durationMs},true);
+      buildPreview();
+      // reportWindowKey() ব্যবহার করি এখানেও
+      const todayRep=await db.ref(`reports/${ME.uid}/${reportWindowKey()}`).once('value');
+      if(todayRep.exists()){
+        const oldData=todayRep.val();
+        const oldText=oldData.reportText||'';
+        const newLines=oldText.split('\n').map(line=>{
+          if(line.match(/^Sleeping at/))return 'Sleeping at     : '+startFmt12;
+          if(line.match(/^Wake Up/))return 'Wake Up         : '+endFmt12;
+          if(line.match(/^Total Sleep/))return 'Total Sleep     : '+durStr;
+          return line;
+        });
+        const newText=newLines.join('\n');
+        await db.ref(`reports/${ME.uid}/${reportWindowKey()}`).update({reportText:newText,sleepStart:startFmt12,sleepEnd:endFmt12,sleepDuration:durStr});
+        await db.ref(`feed/${ME.uid}_${reportWindowKey()}`).update({reportText:newText,sleepStart:startFmt12,sleepEnd:endFmt12,sleepDuration:durStr});
+        await loadReportHistory();
+        initFeed();
+        toast('ঘুমের তথ্য আপডেট হয়েছে! রিপোর্টে [Edited] দেখাবে।');
+      } else {toast('ঘুমের রেকর্ড আপডেট হয়েছে!');}
+    });
+  });
+}
+
+// ── Push-up Tracker ────────────────────────────────────────────
+function puLiveUpdate(){
+  const v=parseInt(document.getElementById('puInp').value)||0;
+  RS._puCount=v;
+  buildPreview();
+  const badge=document.getElementById('puDayBadge');
+  if(badge){if(v>0&&RS._puDayNum){badge.textContent=`Day ${RS._puDayNum}`;badge.style.display='inline';}else badge.style.display='none';}
+}
+function adjPu(d){
+  const inp=document.getElementById('puInp');
+  inp.value=Math.max(0,(parseInt(inp.value)||0)+d);
+  puLiveUpdate();
+}
+function editPuRecord(id){
+  db.ref(`tracker/${ME.uid}/pushup_logs/${id}`).once('value').then(snap=>{
+    const r=snap.val();if(!r)return;
+    openModal('💪 পুশ-আপ রেকর্ড এডিট',`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">পুশ-আপ সংখ্যা</div>
+      <input class="inp" id="ePuC" type="number" min="1" value="${r.count}">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">নোট</div>
+      <textarea class="inp" id="ePuN">${r.note||''}</textarea>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">সময় (HH:MM)</div>
+      <input class="inp" id="ePuT" value="${r.time}">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;">তারিখ (DD/MM/YYYY)</div>
+      <input class="inp" id="ePuD" value="${r.date}">
+    `,async()=>{
+      const c=parseInt(document.getElementById('ePuC').value)||0;
+      if(c<=0){toast('সংখ্যা দাও','err');return;}
+      await db.ref(`tracker/${ME.uid}/pushup_logs/${id}`).update({count:c,note:document.getElementById('ePuN').value.trim(),time:document.getElementById('ePuT').value,date:document.getElementById('ePuD').value});
+      closeModal();toast('পুশ-আপ রেকর্ড আপডেট হয়েছে!');
+    });
+  });
+}
+async function delTrkRecord(store,id){
+  if(!ME)return;
+  await db.ref(`tracker/${ME.uid}/${store}/${id}`).remove();
+  toast('🗑 মুছে ফেলা হয়েছে','warn');
+}
+
+// ── Profile Photo ─────────────────────────────────────────────
+async function uploadProfilePhoto(input){
+  const file=input.files[0];if(!file)return;
+  const statusEl=document.getElementById('profilePhotoStatus');
+  if(statusEl)statusEl.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22"/><path d="M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>আপলোড হচ্ছে...';
+  try{
+    const url=await uploadImg(file);
+    USER_PHOTO_URL=url;
+    await db.ref(`users/${ME.uid}`).update({photoUrl:url});
+    ME.photoUrl=url;
+    updateAllAvatars();
+    if(statusEl)statusEl.textContent='';
+    toast('প্রোফাইল ফটো আপডেট হয়েছে!');
+  }catch(e){
+    if(statusEl)statusEl.textContent='আপলোড ব্যর্থ';
+    toast('ছবি আপলোড হয়নি: '+e.message,'err');
+  }
+}
+function updateAllAvatars(){
+  if(!ME)return;
+  const photo=ME.photoUrl||null;
+  const initial=(ME.name||'?')[0].toUpperCase();
+  const hAv=document.getElementById('hAv');
+  if(hAv){
+    if(photo){hAv.innerHTML=`<img class="av-img" src="${photo}" onerror="this.style.display='none'">`;hAv.style.overflow='hidden';}
+    else{hAv.textContent=initial;hAv.style.overflow='';}
+  }
+  const ringInner=document.getElementById('profileRingInner');
+  if(ringInner){
+    if(photo){ringInner.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.innerHTML='<span class=av-initial>${initial}</span>'">`;}
+    else{ringInner.innerHTML=`<span class="av-initial">${initial}</span>`;}
+  }
+  const pi=document.getElementById('profilePicInitial');
+  if(pi)pi.textContent=initial;
+  const pigN=document.getElementById('profileIgName');if(pigN)pigN.textContent=ME.name;
+  const pigE=document.getElementById('profileIgEmail');if(pigE)pigE.textContent=ME.email;
+}
+function smFieldChange(){buildPreview();}
+function getAvatarHTML(photoUrl,name,size,style){
+  const sz=size||26;
+  const init=(name||'?')[0].toUpperCase();
+  const es=style||'';
+  if(photoUrl){
+    return `<div class="av" style="width:${sz}px;height:${sz}px;overflow:hidden;flex-shrink:0;${es}"><img style="width:100%;height:100%;object-fit:cover;border-radius:50%;" src="${photoUrl}" onerror="this.style.display='none'"></div>`;
+  }
+  return `<div class="av" style="width:${sz}px;height:${sz}px;flex-shrink:0;${es}">${init}</div>`;
+}
+</script>
+</body>
+</html>
