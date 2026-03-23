@@ -2463,8 +2463,17 @@ function confirmWake(){
   document.getElementById('wakeOverlay').classList.remove('show');
   const timerBlock=document.getElementById('slpTimerBlock');
   if(timerBlock&&timerBlock.style.display!=='none'){trkEndSleep();return;}
-  if(h>=7){RS.wake=false;document.getElementById('tWk').className='tgl';updateRateUI();toast('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>৭টার পরে উঠেছ!','warn');}
-  else{RS.wake=true;document.getElementById('tWk').className='tgl on';updateRateUI();toast('সকালের confirm হয়েছে! 🌅');}
+  if(h>=7){
+    RS.wake=false;
+    document.getElementById('tWk').className='tgl';
+    updateRateUI();
+    toast('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>৭টার পরে উঠেছ!','warn');
+  } else {
+    RS.wake=true;
+    document.getElementById('tWk').className='tgl on';
+    updateRateUI();
+    toast('সকালের confirm হয়েছে! 🌅');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2476,6 +2485,8 @@ let _editCb=null;
 
 function initTracker(){
   const today=trkFmtDate();
+  const winKey=reportWindowKey();
+  const now=Date.now();
   db.ref(`tracker/${ME.uid}/sleep_active`).once('value').then(s=>{
     if(s.exists()){
       const d=s.val();
@@ -2486,15 +2497,19 @@ function initTracker(){
       activateSlpUI(d);
     }
   });
-  db.ref(`tracker/${ME.uid}/sleep_logs`).orderByChild('savedAt').limitToLast(10).once('value').then(s=>{
+  db.ref(`tracker/${ME.uid}/sleep_logs`).orderByChild('savedAt').limitToLast(20).once('value').then(s=>{
     if(!s.exists())return;
     const items=[];s.forEach(cc=>items.push(cc.val()));
     items.sort((a,b)=>b.savedAt-a.savedAt);
-    const todaySleep=items.find(r=>r.endDate===today);
+    items.forEach(r=>{if(r.expireAt&&r.expireAt<now){db.ref(`tracker/${ME.uid}/sleep_logs/${r.id}`).remove().catch(()=>{});}});
+    const todaySleep=items.find(r=>r.reportWindowKey===winKey&&(!r.expireAt||r.expireAt>now))
+      ||items.find(r=>r.endDate===today&&(!r.expireAt||r.expireAt>now));
     if(todaySleep){
       showSlpSummaryInline(todaySleep,todaySleep.edited===true);
       if(isBeforeMidnight(todaySleep.startTime)){RS.sleep=true;document.getElementById('tSl').className='tgl on';}
-      if(isBeforeSevenAM(todaySleep.endTime)){RS.wake=true;document.getElementById('tWk').className='tgl on';}
+      const woke=isBeforeSevenAM(todaySleep.endTime);
+      if(woke){RS.wake=true;document.getElementById('tWk').className='tgl on';}
+      else{RS.wake=false;document.getElementById('tWk').className='tgl';}
       updateRateUI();
     }
   });
@@ -2592,9 +2607,13 @@ async function trkEndSleep(){
   const durationMs=endTs-startTs;
   RS._slpEndTime=fmt12h(endTime24);
   RS._slpDuration=trkDurHours(durationMs);
-  if(isBeforeSevenAM(endTime24)){
+  const woke=isBeforeSevenAM(endTime24);
+  if(woke){
     RS.wake=true;
     document.getElementById('tWk').className='tgl on';
+  } else {
+    RS.wake=false;
+    document.getElementById('tWk').className='tgl';
   }
   updateRateUI();
   resetSlpUI();
@@ -2602,13 +2621,16 @@ async function trkEndSleep(){
   try{
     const snap=await db.ref(`tracker/${ME.uid}/sleep_active`).once('value');
     const start=snap.val();
+    const winKey=reportWindowKey();
     const record={
       id:trkUID(),type:'sleep',
       startTs:startTs,
       startDate:start?start.date:trkFmtDate(new Date(startTs)),
       startTime:start?start.time:trkFmtTime(new Date(startTs)),
       endTs,endDate:trkFmtDate(endNow),endTime:endTime24,
-      durationMs,duration:trkDur(durationMs),savedAt:endTs
+      durationMs,duration:trkDur(durationMs),savedAt:endTs,
+      reportWindowKey:winKey,
+      expireAt:endTs+(24*60*60*1000)
     };
     await db.ref(`tracker/${ME.uid}/sleep_logs/${record.id}`).set(record);
     await db.ref(`tracker/${ME.uid}/sleep_active`).remove();
@@ -2658,7 +2680,8 @@ function editSlpRecord(id){
       const parseT=(ds,ts)=>{const[d,m,y]=ds.split('/');const[hh,mm]=ts.split(':');return new Date(+y,+m-1,+d,+hh,+mm).getTime();};
       const startTs=parseT(sd,st),endTs=parseT(ed,et);
       const durationMs=Math.max(0,endTs-startTs);
-      await db.ref(`tracker/${ME.uid}/sleep_logs/${id}`).update({startTime:st,startDate:sd,endTime:et,endDate:ed,durationMs,duration:trkDur(durationMs),edited:true});
+      const winKey=reportWindowKey();
+      await db.ref(`tracker/${ME.uid}/sleep_logs/${id}`).update({startTime:st,startDate:sd,endTime:et,endDate:ed,durationMs,duration:trkDur(durationMs),edited:true,reportWindowKey:winKey,expireAt:endTs+(24*60*60*1000)});
       closeModal();
       const startFmt12=fmt12h(st)+' [Edited]';
       const endFmt12=fmt12h(et)+' [Edited]';
